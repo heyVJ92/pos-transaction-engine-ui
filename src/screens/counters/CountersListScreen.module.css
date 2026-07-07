@@ -1,0 +1,354 @@
+.root {
+  padding: 28px 32px 48px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.subtitle {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+
+.addButton {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 15px;
+  border-radius: 8px;
+}
+
+.filterBar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 220px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+}
+.searchInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.filterSelect {
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--pending-tint);
+  color: #e5484d;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.errorBanner button {
+  background: none;
+  border: 0.5px solid currentColor;
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cardTopRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.menuWrap {
+  position: relative;
+}
+
+.menuButton {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-3);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0;
+}
+.menuButton:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.menuDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  min-width: 140px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuItem {
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 7px;
+}
+.menuItem:hover:not(:disabled) {
+  background: var(--hover);
+}
+.menuItem:disabled {
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+
+.menuItemDanger {
+  color: #e5484d;
+}
+.menuItemDanger:disabled {
+  color: var(--text-3);
+}
+
+.menuDivider {
+  height: 0.5px;
+  background: var(--border);
+  margin: 4px 2px;
+}
+
+.cardName {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  flex-shrink: 0;
+}
+
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusActive {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.statusInactive {
+  background: var(--pending-tint);
+  color: var(--text-3);
+}
+
+.cardBody {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 14px 0;
+}
+
+.cardCode {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.total {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.meta {
+  margin-top: 4px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.sessionButton {
+  width: 100%;
+  margin-bottom: 8px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px;
+  border-radius: 9px;
+}
+
+.sessionButtonSecondary {
+  width: 100%;
+  margin-bottom: 8px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px;
+  border-radius: 9px;
+}
+.sessionButtonSecondary:hover {
+  background: var(--hover);
+}
+
+.skeletonCard {
+  min-height: 150px;
+  border-radius: 14px;
+  background: var(--track);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.empty {
+  padding: 56px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 0.5px solid var(--border-strong);
+  background: var(--track);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  color: var(--text-3);
+  font-size: 16px;
+}
+
+.emptyTitle {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.emptySub {
+  margin-top: 5px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.clearButton {
+  margin-top: 16px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text);
+  padding: 7px 13px;
+  border-radius: 8px;
+}

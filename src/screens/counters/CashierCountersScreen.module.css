@@ -1,0 +1,228 @@
+.root {
+  padding: 28px 32px 40px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.subtitle {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--pending-tint);
+  color: #e5484d;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.errorBanner button {
+  background: none;
+  border: 0.5px solid currentColor;
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 178px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cardName {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  flex-shrink: 0;
+}
+
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusOpen {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.statusAvailable {
+  background: var(--track);
+  color: var(--text-3);
+}
+
+.statusInactive {
+  background: var(--pending-tint);
+  color: var(--text-3);
+}
+
+.cardBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 0;
+}
+
+.total {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.meta {
+  margin-top: 4px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.buttonPrimary {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px;
+  border-radius: 9px;
+}
+
+.buttonSecondary {
+  width: 100%;
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px;
+  border-radius: 9px;
+}
+.buttonSecondary:hover {
+  background: var(--hover);
+}
+
+.buttonDisabled {
+  width: 100%;
+  background: var(--track);
+  border: 0.5px solid var(--border);
+  color: var(--text-3);
+  cursor: not-allowed;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px;
+  border-radius: 9px;
+}
+
+.skeletonCard {
+  min-height: 178px;
+  border-radius: 14px;
+  background: var(--track);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.empty {
+  padding: 56px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 0.5px solid var(--border-strong);
+  background: var(--track);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  color: var(--text-3);
+  font-size: 16px;
+}
+
+.emptyTitle {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.emptySub {
+  margin-top: 5px;
+  font-size: 13px;
+  color: var(--text-2);
+}

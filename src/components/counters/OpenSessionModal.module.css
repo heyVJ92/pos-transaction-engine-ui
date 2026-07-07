@@ -1,0 +1,114 @@
+.counterInfo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.counterName {
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--text);
+}
+
+.counterCode {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.field {
+  margin-bottom: 14px;
+}
+.field:last-of-type {
+  margin-bottom: 0;
+}
+
+.field label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  background: var(--bg);
+  border: 0.5px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.fieldError {
+  border-color: #e5484d !important;
+}
+
+.errorText {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #e5484d;
+}
+
+.serverError {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--pending-tint);
+  color: #e5484d;
+  font-size: 12.5px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancelButton {
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  padding: 9px 16px;
+  border-radius: 8px;
+}
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.saveButton {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 18px;
+  border-radius: 8px;
+}
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

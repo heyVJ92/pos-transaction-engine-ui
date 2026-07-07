@@ -1,0 +1,313 @@
+.root {
+  padding: 28px 32px 48px;
+}
+
+.header {
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.subtitle {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+
+.previewBanner {
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 12.5px;
+}
+.previewBanner code {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11.5px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.table {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 1fr 96px 96px;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--track);
+  border-bottom: 0.5px solid var(--border);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 96px 96px;
+  gap: 10px;
+  padding: 11px 16px;
+  border-bottom: 0.5px solid var(--border);
+  align-items: center;
+  cursor: pointer;
+}
+.row:last-child {
+  border-bottom: none;
+}
+.row:hover {
+  background: var(--hover);
+}
+
+.rowSelected {
+  background: var(--accent-bg);
+}
+.rowSelected:hover {
+  background: var(--accent-bg);
+}
+
+.right {
+  text-align: right;
+}
+
+.productCell {
+  min-width: 0;
+}
+
+.productName {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 450;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productSku {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+.availBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.availHealthy {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.availLow {
+  background: rgba(234, 179, 8, 0.14);
+  color: #b45309;
+}
+
+.availOut {
+  background: var(--pending-tint);
+  color: #e5484d;
+}
+
+.reserved {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.ledgerPane {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  position: sticky;
+  top: 0;
+}
+
+.ledgerHeader {
+  padding: 16px 18px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.ledgerLabel {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ledgerProductName {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 550;
+  color: var(--text);
+}
+
+.ledgerStats {
+  margin-top: 4px;
+  display: flex;
+  gap: 14px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+.ledgerSku {
+  color: var(--text-3);
+}
+
+.ledgerBody {
+  padding: 18px 18px 20px;
+  max-height: 540px;
+  overflow-y: auto;
+}
+
+.timelineRow {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 12px;
+}
+
+.timelineRail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timelineDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.timelineLine {
+  width: 1.5px;
+  flex: 1;
+  min-height: 14px;
+  margin: 3px 0;
+  background: var(--border);
+}
+
+.timelineContent {
+  padding-bottom: 16px;
+  min-width: 0;
+}
+
+.timelineTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.moveBadge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+}
+
+.moveQty {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.moveTime {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--text-3);
+  margin-left: auto;
+}
+
+.moveNote {
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.moveOrder {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  color: var(--text-3);
+}
+
+.moveRunning {
+  margin-top: 5px;
+  display: flex;
+  gap: 12px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.moveInitial {
+  background: var(--track);
+  color: var(--text-3);
+}
+
+.moveReserved {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.moveConfirmed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.moveReverted {
+  background: rgba(234, 179, 8, 0.14);
+  color: #b45309;
+}
+
+.moveExpired {
+  background: var(--pending-tint);
+  color: #e5484d;
+}
+
+.dotInitial {
+  background: var(--text-3);
+}
+
+.dotReserved {
+  background: var(--accent);
+}
+
+.dotConfirmed {
+  background: #16a34a;
+}
+
+.dotReverted {
+  background: #b45309;
+}
+
+.dotExpired {
+  background: #e5484d;
+}

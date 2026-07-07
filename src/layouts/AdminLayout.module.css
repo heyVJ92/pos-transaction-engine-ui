@@ -1,0 +1,201 @@
+.root {
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  font-family: 'Geist', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.sidebar {
+  width: 244px;
+  flex-shrink: 0;
+  border-right: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.brand {
+  padding: 18px 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.markBarAccent, .markBar, .markBarSmall {
+  height: 2.5px;
+  border-radius: 2px;
+}
+.markBarAccent { width: 13px; background: var(--accent); }
+.markBar { width: 13px; background: var(--text-3); }
+.markBarSmall { width: 9px; background: var(--text-3); }
+
+.brandText {
+  line-height: 1.1;
+}
+
+.wordmark {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.storeLabel {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+
+.nav {
+  flex: 1;
+  padding: 8px 10px;
+  overflow-y: auto;
+}
+
+.navGroupLabel {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 8px 8px 6px;
+}
+
+.navGroupLabel + .navGroupLabel {
+  padding-top: 16px;
+}
+
+.navItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  margin-bottom: 1px;
+  color: var(--text-2);
+  transition: background 0.12s, color 0.12s;
+}
+
+.navItem:hover {
+  background: var(--hover);
+}
+
+.navItemActive {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+.navItemActive:hover {
+  background: var(--accent-bg);
+}
+
+.footer {
+  padding: 10px;
+  border-top: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.roleRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 6px;
+}
+
+.roleAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.roleText {
+  line-height: 1.15;
+  flex: 1;
+  min-width: 0;
+}
+
+.roleName {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.roleScope {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.exitLink {
+  font-size: 11px;
+  color: var(--text-3);
+  text-decoration: none;
+}
+.exitLink:hover {
+  color: var(--text-2);
+}
+
+.themeToggle {
+  display: flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--track);
+  border: 0.5px solid var(--border);
+}
+
+.themeTab {
+  flex: 1;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-3);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  padding: 5px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.themeTabActive {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px var(--mark-shadow);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  height: 100vh;
+}
