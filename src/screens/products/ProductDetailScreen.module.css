@@ -1,0 +1,304 @@
+.root {
+  padding: 28px 32px 48px;
+}
+
+.backLink {
+  display: inline-block;
+  font-size: 12.5px;
+  color: var(--text-2);
+  text-decoration: none;
+  margin-bottom: 18px;
+}
+.backLink:hover {
+  color: var(--accent);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mono {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+}
+
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusActive {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.statusInactive {
+  background: var(--pending-tint);
+  color: var(--text-3);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.editButton {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 16px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.editButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.statusToggleButton {
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 9px 16px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.inactiveNote {
+  margin: -8px 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--pending-tint);
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 24px;
+}
+
+.section {
+  margin-bottom: 22px;
+}
+.section:last-of-type {
+  margin-bottom: 0;
+}
+
+.sectionLabel {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+
+.row {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.row:last-child {
+  margin-bottom: 0;
+}
+
+.row2 { grid-template-columns: 1fr 1fr; }
+.row3 { grid-template-columns: repeat(3, 1fr); }
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  background: var(--bg);
+  border: 0.5px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.value {
+  font-size: 13.5px;
+  color: var(--text);
+  padding: 9px 0;
+}
+
+.valueLow {
+  color: #e5484d;
+  font-weight: 600;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.fieldError {
+  border-color: #e5484d !important;
+}
+
+.errorText {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #e5484d;
+}
+
+.serverError {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--pending-tint);
+  color: #e5484d;
+  font-size: 12.5px;
+}
+
+.readonlyNote {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--border);
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 0.5px solid var(--border);
+}
+
+.cancelButton {
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  padding: 9px 16px;
+  border-radius: 8px;
+}
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.saveButton {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 18px;
+  border-radius: 8px;
+}
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--pending-tint);
+  color: #e5484d;
+  font-size: 13px;
+}
+.errorBanner button {
+  background: none;
+  border: 0.5px solid currentColor;
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+}
+
+.skeleton {
+  height: 320px;
+  border-radius: 12px;
+  background: var(--track);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}

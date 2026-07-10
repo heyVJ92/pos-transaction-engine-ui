@@ -2,17 +2,9 @@ import { useState, type FormEvent } from 'react'
 import Modal from '../Modal'
 import styles from './ProductFormModal.module.css'
 import { ApiClientError, extractFieldErrors } from '../../api/client'
-import {
-  createProduct,
-  updateProduct,
-  PRODUCT_CATEGORIES,
-  type Product,
-  type ProductCategory,
-  type ProductFormInput,
-} from '../../api/products'
+import { createProduct, PRODUCT_CATEGORIES, type ProductCategory, type ProductFormInput } from '../../api/products'
 
 interface ProductFormModalProps {
-  product?: Product
   onClose: () => void
   onSaved: () => void
 }
@@ -21,16 +13,15 @@ function parseNumber(value: string): number {
   return value.trim() === '' ? 0 : Number(value)
 }
 
-export default function ProductFormModal({ product, onClose, onSaved }: ProductFormModalProps) {
-  const isEdit = Boolean(product)
-
-  const [name, setName] = useState(product?.name ?? '')
-  const [sku, setSku] = useState(product?.sku ?? '')
-  const [category, setCategory] = useState<ProductCategory | ''>(product?.category ?? '')
-  const [costPrice, setCostPrice] = useState(product ? String(product.costPrice) : '')
-  const [sellPrice, setSellPrice] = useState(product ? String(product.sellPrice) : '')
-  const [tax, setTax] = useState(product ? String(product.tax) : '')
-  const [weight, setWeight] = useState(product ? String(product.weight) : '')
+// Create-only — editing an existing product happens inline on ProductDetailScreen now, not here.
+export default function ProductFormModal({ onClose, onSaved }: ProductFormModalProps) {
+  const [name, setName] = useState('')
+  const [sku, setSku] = useState('')
+  const [category, setCategory] = useState<ProductCategory | ''>('')
+  const [costPrice, setCostPrice] = useState('')
+  const [sellPrice, setSellPrice] = useState('')
+  const [tax, setTax] = useState('')
+  const [weight, setWeight] = useState('')
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState<string | null>(null)
@@ -72,11 +63,7 @@ export default function ProductFormModal({ product, onClose, onSaved }: ProductF
 
     setSubmitting(true)
     try {
-      if (product) {
-        await updateProduct(product.uuid, input)
-      } else {
-        await createProduct(input)
-      }
+      await createProduct(input)
       onSaved()
     } catch (err) {
       if (err instanceof ApiClientError) {
@@ -96,7 +83,7 @@ export default function ProductFormModal({ product, onClose, onSaved }: ProductF
   }
 
   return (
-    <Modal title={isEdit ? 'Edit product' : 'Add product'} onClose={onClose} width={560}>
+    <Modal title="Add product" onClose={onClose} width={560}>
       <form onSubmit={handleSubmit} noValidate>
         {serverError && <div className={styles.serverError}>{serverError}</div>}
 

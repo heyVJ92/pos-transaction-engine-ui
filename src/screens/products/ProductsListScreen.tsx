@@ -1,28 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import styles from './ProductsListScreen.module.css'
 import Pagination from '../../components/Pagination'
-import ConfirmDialog from '../../components/ConfirmDialog'
 import ProductFormModal from '../../components/products/ProductFormModal'
 import { ApiClientError, type ApiMeta } from '../../api/client'
-import {
-  listProducts,
-  deleteProduct,
-  PRODUCT_CATEGORIES,
-  type Product,
-  type ProductCategory,
-  type ProductStatus,
-} from '../../api/products'
+import { listProducts, PRODUCT_CATEGORIES, type Product, type ProductCategory, type ProductStatus } from '../../api/products'
 
 const LIMIT = 10
 const EMPTY_META: ApiMeta = { total: 0, page: 1, limit: LIMIT, totalPages: 1 }
 
 export default function ProductsListScreen() {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const search = searchParams.get('search') ?? ''
   const category = (searchParams.get('category') ?? '') as ProductCategory | ''
   const status = (searchParams.get('status') ?? '') as ProductStatus | ''
+  const lowStock = searchParams.get('lowStock') === 'true'
   const page = Number(searchParams.get('page') ?? '1')
 
   const [searchInput, setSearchInput] = useState(search)
@@ -32,10 +26,7 @@ export default function ProductsListScreen() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [formTarget, setFormTarget] = useState<'new' | Product | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
-  const [deleting, setDeleting] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [showAddForm, setShowAddForm] = useState(false)
 
   const updateParams = useCallback(
     (patch: Record<string, string | undefined>) => {
@@ -67,6 +58,7 @@ export default function ProductsListScreen() {
         search: search || undefined,
         category: category || undefined,
         status: status || undefined,
+        lowStock: lowStock || undefined,
         page,
         limit: LIMIT,
       })
@@ -77,33 +69,18 @@ export default function ProductsListScreen() {
     } finally {
       setLoading(false)
     }
-  }, [search, category, status, page])
+  }, [search, category, status, lowStock, page])
 
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
 
   const handleSaved = () => {
-    setFormTarget(null)
+    setShowAddForm(false)
     fetchProducts()
   }
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return
-    setDeleting(true)
-    setDeleteError(null)
-    try {
-      await deleteProduct(deleteTarget.uuid)
-      setDeleteTarget(null)
-      fetchProducts()
-    } catch (err) {
-      setDeleteError(err instanceof ApiClientError ? err.message : 'Could not delete product.')
-    } finally {
-      setDeleting(false)
-    }
-  }
-
-  const hasFilters = Boolean(search || category || status)
+  const hasFilters = Boolean(search || category || status || lowStock)
   const clearFilters = () => {
     setSearchInput('')
     setSearchParams({})
@@ -118,7 +95,7 @@ export default function ProductsListScreen() {
             {loading ? 'Loading…' : `${meta.total} product${meta.total === 1 ? '' : 's'}`}
           </p>
         </div>
-        <button type="button" className={styles.addButton} onClick={() => setFormTarget('new')}>
+        <button type="button" className={styles.addButton} onClick={() => setShowAddForm(true)}>
           Add product
         </button>
       </div>
@@ -151,6 +128,14 @@ export default function ProductsListScreen() {
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </select>
+        <select
+          className={styles.filterSelect}
+          value={lowStock ? 'true' : ''}
+          onChange={(e) => updateParams({ lowStock: e.target.value || undefined, page: undefined })}
+        >
+          <option value="">All stock levels</option>
+          <option value="true">Low stock only</option>
+        </select>
       </div>
 
       {error && (
@@ -168,9 +153,9 @@ export default function ProductsListScreen() {
             <span>SKU</span>
             <span>Name</span>
             <span>Category</span>
+            <span>Stock</span>
             <span className={styles.right}>Sell price</span>
             <span>Status</span>
-            <span className={styles.right}>Actions</span>
           </div>
 
           {loading &&
@@ -190,47 +175,46 @@ export default function ProductsListScreen() {
           )}
 
           {!loading &&
-            items.map((product) => (
-              <div key={product.uuid} className={styles.row}>
-                <span className={styles.mono}>{product.sku}</span>
-                <span className={styles.name}>{product.name}</span>
-                <span className={styles.category}>{product.category}</span>
-                <span className={`${styles.mono} ${styles.right}`}>${product.sellPrice.toFixed(2)}</span>
-                <span>
-                  <span
-                    className={`${styles.statusBadge} ${
-                      product.status === 'active' ? styles.statusActive : styles.statusInactive
-                    }`}
-                  >
-                    <span className={styles.statusDot} />
-                    {product.status}
+            items.map((product) => {
+              const isLow = product.availableStock < product.minQty
+              return (
+                <div
+                  key={product.uuid}
+                  className={styles.row}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`View ${product.name}`}
+                  onClick={() => navigate(product.uuid)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      navigate(product.uuid)
+                    }
+                  }}
+                >
+                  <span className={styles.mono}>{product.sku}</span>
+                  <span className={styles.name}>{product.name}</span>
+                  <span className={styles.category}>{product.category}</span>
+                  <span className={styles.stockCell}>
+                    <span className={isLow ? styles.stockLow : styles.stockOk}>{product.availableStock}</span>
+                    <span className={styles.stockRange}>
+                      min {product.minQty} · max {product.maxQty ?? '—'}
+                    </span>
                   </span>
-                </span>
-                <span className={styles.actions}>
-                  <button
-                    type="button"
-                    className={styles.actionLink}
-                    onClick={() => setFormTarget(product)}
-                    disabled={product.status === 'inactive'}
-                    title={product.status === 'inactive' ? 'Inactive products cannot be edited' : undefined}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.actionLink} ${styles.actionDanger}`}
-                    onClick={() => {
-                      setDeleteTarget(product)
-                      setDeleteError(null)
-                    }}
-                    disabled={product.status === 'inactive'}
-                    title={product.status === 'inactive' ? 'Already inactive' : undefined}
-                  >
-                    Delete
-                  </button>
-                </span>
-              </div>
-            ))}
+                  <span className={`${styles.mono} ${styles.right}`}>${product.sellPrice.toFixed(2)}</span>
+                  <span>
+                    <span
+                      className={`${styles.statusBadge} ${
+                        product.status === 'active' ? styles.statusActive : styles.statusInactive
+                      }`}
+                    >
+                      <span className={styles.statusDot} />
+                      {product.status}
+                    </span>
+                  </span>
+                </div>
+              )
+            })}
         </div>
       )}
 
@@ -243,26 +227,7 @@ export default function ProductsListScreen() {
         />
       )}
 
-      {formTarget && (
-        <ProductFormModal
-          product={formTarget === 'new' ? undefined : formTarget}
-          onClose={() => setFormTarget(null)}
-          onSaved={handleSaved}
-        />
-      )}
-
-      {deleteTarget && (
-        <ConfirmDialog
-          title="Delete product"
-          message={`Deactivate "${deleteTarget.name}"? This soft-deletes the product — it stops appearing in the active catalog and can't be edited further, but the record remains.`}
-          confirmLabel="Delete"
-          danger
-          busy={deleting}
-          error={deleteError}
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
-        />
-      )}
+      {showAddForm && <ProductFormModal onClose={() => setShowAddForm(false)} onSaved={handleSaved} />}
     </div>
   )
 }

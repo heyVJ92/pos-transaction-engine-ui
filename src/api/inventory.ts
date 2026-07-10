@@ -1,51 +1,54 @@
 import { apiRequest, type ApiMeta } from './client'
-import type { ProductCategory, ProductStatus } from './products'
 
-export interface InventoryItem {
+export type MovementType = 'initial' | 'reserved' | 'confirmed' | 'reverted' | 'expired' | 'restock'
+
+// IInventoryMovementPublic — GET /inventory/:product_uuid/movements. No `note`/running-reserved
+// fields exist server-side; only stockBefore/stockAfter (available stock) are tracked per movement.
+export interface InventoryMovement {
   uuid: string
-  product: {
-    uuid: string
-    name: string
-    sku: string
-    category: ProductCategory
-    costPrice: number
-    sellPrice: number
-    tax: number
-    weight: number
-    status: ProductStatus
-  }
-  availableStock: number
-  reservedStock: number
+  productUuid: string
+  orderUuid: string | null
+  orderNumber: string | null
+  quantity: number
+  movementType: MovementType
+  stockBefore: number
+  stockAfter: number
+  unitCost: number | null
   createdAt: string
-  updatedAt: string
 }
 
-export interface ListInventoryParams {
-  category?: ProductCategory
-  search?: string
+export interface ListInventoryMovementsParams {
   page: number
   limit: number
-  sort?: 'name' | 'category' | 'cost_price' | 'sell_price'
   order?: 'asc' | 'desc'
+  movementType?: MovementType
+  startDate?: string
+  endDate?: string
 }
 
-export interface ListInventoryResult {
-  items: InventoryItem[]
+export interface ListInventoryMovementsResult {
+  items: InventoryMovement[]
   meta: ApiMeta
 }
 
-// Matches the real, committed `GET /inventory` — see docs/api-reference.md#inventory. Not called yet;
-// InventoryScreen runs on local mock data until wiring is confirmed (docs/decisions.md, 2026-07-04).
-export async function listInventory(params: ListInventoryParams): Promise<ListInventoryResult> {
+// Query params match the live `inventoryMovementQuerySchema` (inventory.schema.ts) — startDate,
+// endDate, page, limit, order, movementType. There is no `sort` param: the repository always
+// orders by IM.created_at, `order` only controls asc/desc.
+export async function listInventoryMovements(
+  productUuid: string,
+  params: ListInventoryMovementsParams,
+): Promise<ListInventoryMovementsResult> {
   const query = new URLSearchParams()
-  if (params.category) query.set('category', params.category)
-  if (params.search) query.set('search', params.search)
   query.set('page', String(params.page))
   query.set('limit', String(params.limit))
-  if (params.sort) query.set('sort', params.sort)
   if (params.order) query.set('order', params.order)
+  if (params.movementType) query.set('movementType', params.movementType)
+  if (params.startDate) query.set('startDate', params.startDate)
+  if (params.endDate) query.set('endDate', params.endDate)
 
-  const { data, meta } = await apiRequest<InventoryItem[]>(`/inventory?${query.toString()}`)
+  const { data, meta } = await apiRequest<InventoryMovement[]>(
+    `/inventory/${productUuid}/movements?${query.toString()}`,
+  )
   // meta is always present on this endpoint (sendPaginated) — non-null assertion is safe here.
   return { items: data, meta: meta! }
 }

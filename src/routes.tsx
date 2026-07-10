@@ -4,6 +4,7 @@ import AdminLayout from './layouts/AdminLayout'
 import CashierLayout from './layouts/CashierLayout'
 import BlockedScreen from './components/BlockedScreen'
 import ProductsListScreen from './screens/products/ProductsListScreen'
+import ProductDetailScreen from './screens/products/ProductDetailScreen'
 import CountersListScreen from './screens/counters/CountersListScreen'
 import CashierCountersScreen from './screens/counters/CashierCountersScreen'
 import RegisterScreen from './screens/register/RegisterScreen'
@@ -33,6 +34,7 @@ export default function AppRoutes() {
           }
         />
         <Route path="products" element={<ProductsListScreen />} />
+        <Route path="products/:uuid" element={<ProductDetailScreen />} />
         <Route path="inventory" element={<InventoryScreen />} />
         <Route
           path="orders"

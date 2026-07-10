@@ -1,6 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import styles from './InventoryScreen.module.css'
-import { MOCK_INVENTORY, buildMockLedger, type MovementType } from './mockInventory'
+import { ApiClientError } from '../../api/client'
+import { listProducts, type Product } from '../../api/products'
+import { listInventoryMovements, type InventoryMovement, type MovementType } from '../../api/inventory'
+
+const PRODUCTS_LIMIT = 100
+const MOVEMENTS_LIMIT = 20
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleString([], {
@@ -23,6 +28,16 @@ const MOVEMENT_LABEL: Record<MovementType, string> = {
   confirmed: 'confirmed',
   reverted: 'reverted',
   expired: 'expired',
+  restock: 'restock',
+}
+
+const MOVEMENT_NOTE: Record<MovementType, string> = {
+  initial: 'stock received (initial)',
+  reserved: 'reserved at checkout',
+  confirmed: 'order confirmed, stock deducted',
+  reverted: 'hold expired, stock released',
+  expired: 'reservation expired',
+  restock: 'stock replenished',
 }
 
 function movementClass(type: MovementType): string {
@@ -37,6 +52,8 @@ function movementClass(type: MovementType): string {
       return styles.moveReverted
     case 'expired':
       return styles.moveExpired
+    case 'restock':
+      return styles.moveRestock
   }
 }
 
@@ -52,32 +69,85 @@ function dotClass(type: MovementType): string {
       return styles.dotReverted
     case 'expired':
       return styles.dotExpired
+    case 'restock':
+      return styles.dotRestock
   }
 }
 
 export default function InventoryScreen() {
-  const [selectedUuid, setSelectedUuid] = useState(MOCK_INVENTORY[0]?.uuid ?? null)
+  const [products, setProducts] = useState<Product[]>([])
+  const [productsLoading, setProductsLoading] = useState(true)
+  const [productsError, setProductsError] = useState<string | null>(null)
+
+  const [selectedUuid, setSelectedUuid] = useState<string | null>(null)
+
+  const [movements, setMovements] = useState<InventoryMovement[]>([])
+  const [movementsLoading, setMovementsLoading] = useState(false)
+  const [movementsError, setMovementsError] = useState<string | null>(null)
+
+  const fetchProducts = useCallback(async () => {
+    setProductsLoading(true)
+    setProductsError(null)
+    try {
+      const result = await listProducts({ page: 1, limit: PRODUCTS_LIMIT })
+      setProducts(result.items)
+      // default state on load: first product in the list, unless one's already selected
+      setSelectedUuid((prev) => prev ?? result.items[0]?.uuid ?? null)
+    } catch (err) {
+      setProductsError(err instanceof ApiClientError ? err.message : 'Could not load products.')
+    } finally {
+      setProductsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
+
+  const fetchMovements = useCallback(async (productUuid: string) => {
+    setMovementsLoading(true)
+    setMovementsError(null)
+    try {
+      const result = await listInventoryMovements(productUuid, {
+        page: 1,
+        limit: MOVEMENTS_LIMIT,
+        order: 'desc',
+      })
+      setMovements(result.items)
+    } catch (err) {
+      setMovementsError(err instanceof ApiClientError ? err.message : 'Could not load stock movements.')
+    } finally {
+      setMovementsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!selectedUuid) return
+    fetchMovements(selectedUuid)
+  }, [selectedUuid, fetchMovements])
 
   const selected = useMemo(
-    () => MOCK_INVENTORY.find((item) => item.uuid === selectedUuid) ?? null,
-    [selectedUuid],
+    () => products.find((item) => item.uuid === selectedUuid) ?? null,
+    [products, selectedUuid],
   )
-
-  const ledger = useMemo(() => (selected ? buildMockLedger(selected) : []), [selected])
 
   return (
     <div className={styles.root} data-screen-label="Inventory">
       <div className={styles.header}>
         <h1 className={styles.title}>Inventory</h1>
         <p className={styles.subtitle}>
-          Available and reserved stock with the reservation ledger for the selected item.
+          Available and reserved stock with recent stock movements for the selected item.
         </p>
       </div>
 
-      <div className={styles.previewBanner}>
-        Preview data — not wired to the API yet. <code>GET /inventory</code> is ready server-side; this
-        screen runs on local mock data until integration is confirmed.
-      </div>
+      {productsError && (
+        <div className={styles.errorBanner}>
+          <span>{productsError}</span>
+          <button type="button" onClick={fetchProducts}>
+            Retry
+          </button>
+        </div>
+      )}
 
       <div className={styles.layout}>
         <div className={styles.table}>
@@ -86,69 +156,99 @@ export default function InventoryScreen() {
             <span className={styles.right}>Available</span>
             <span className={styles.right}>Reserved</span>
           </div>
-          {MOCK_INVENTORY.map((item) => (
-            <div
-              key={item.uuid}
-              className={`${styles.row} ${item.uuid === selectedUuid ? styles.rowSelected : ''}`}
-              onClick={() => setSelectedUuid(item.uuid)}
-            >
-              <div className={styles.productCell}>
-                <div className={styles.productName}>{item.product.name}</div>
-                <div className={styles.productSku}>{item.product.sku}</div>
+
+          {productsLoading &&
+            Array.from({ length: 6 }).map((_, i) => <div key={i} className={styles.skeletonRow} />)}
+
+          {!productsLoading && !productsError && products.length === 0 && (
+            <div className={styles.empty}>No products found.</div>
+          )}
+
+          {!productsLoading &&
+            products.map((item) => (
+              <div
+                key={item.uuid}
+                className={`${styles.row} ${item.uuid === selectedUuid ? styles.rowSelected : ''}`}
+                onClick={() => setSelectedUuid(item.uuid)}
+              >
+                <div className={styles.productCell}>
+                  <div className={styles.productName}>{item.name}</div>
+                  <div className={styles.productSku}>{item.sku}</div>
+                </div>
+                <div className={styles.right}>
+                  <span className={`${styles.availBadge} ${availabilityClass(item.availableStock)}`}>
+                    {item.availableStock}
+                  </span>
+                </div>
+                <span className={`${styles.reserved} ${styles.right}`}>{item.reservedStock}</span>
               </div>
-              <div className={styles.right}>
-                <span className={`${styles.availBadge} ${availabilityClass(item.availableStock)}`}>
-                  {item.availableStock}
-                </span>
-              </div>
-              <span className={`${styles.reserved} ${styles.right}`}>{item.reservedStock}</span>
-            </div>
-          ))}
+            ))}
         </div>
 
         <div className={styles.ledgerPane}>
           {selected && (
             <>
               <div className={styles.ledgerHeader}>
-                <div className={styles.ledgerLabel}>reservation ledger</div>
-                <div className={styles.ledgerProductName}>{selected.product.name}</div>
+                <div className={styles.ledgerLabel}>stock movements</div>
+                <div className={styles.ledgerProductName}>{selected.name}</div>
                 <div className={styles.ledgerStats}>
-                  <span className={styles.ledgerSku}>{selected.product.sku}</span>
+                  <span className={styles.ledgerSku}>{selected.sku}</span>
                   <span>available {selected.availableStock}</span>
                   <span>reserved {selected.reservedStock}</span>
                 </div>
               </div>
               <div className={styles.ledgerBody}>
-                {ledger.map((mv, i) => (
-                  <div key={mv.uuid} className={styles.timelineRow}>
-                    <div className={styles.timelineRail}>
-                      <span className={`${styles.timelineDot} ${dotClass(mv.type)}`} />
-                      {i < ledger.length - 1 && <span className={styles.timelineLine} />}
-                    </div>
-                    <div className={styles.timelineContent}>
-                      <div className={styles.timelineTop}>
-                        <span className={`${styles.moveBadge} ${movementClass(mv.type)}`}>
-                          {MOVEMENT_LABEL[mv.type]}
-                        </span>
-                        <span className={styles.moveQty}>{mv.quantity}</span>
-                        <span className={styles.moveTime}>{formatTime(mv.createdAt)}</span>
-                      </div>
-                      <div className={styles.moveNote}>
-                        {mv.note}
-                        {mv.orderRef && (
-                          <>
-                            {' · '}
-                            <span className={styles.moveOrder}>{mv.orderRef}</span>
-                          </>
-                        )}
-                      </div>
-                      <div className={styles.moveRunning}>
-                        <span>avail {mv.runningAvailable}</span>
-                        <span>reserved {mv.runningReserved}</span>
-                      </div>
-                    </div>
+                {movementsError && (
+                  <div className={styles.errorBanner}>
+                    <span>{movementsError}</span>
+                    <button type="button" onClick={() => fetchMovements(selected.uuid)}>
+                      Retry
+                    </button>
                   </div>
-                ))}
+                )}
+
+                {movementsLoading && !movementsError && (
+                  <div className={styles.ledgerStatus}>Loading movements…</div>
+                )}
+
+                {!movementsLoading && !movementsError && movements.length === 0 && (
+                  <div className={styles.ledgerStatus}>No stock movements recorded yet.</div>
+                )}
+
+                {!movementsLoading &&
+                  !movementsError &&
+                  movements.map((mv, i) => (
+                    <div key={mv.uuid} className={styles.timelineRow}>
+                      <div className={styles.timelineRail}>
+                        <span className={`${styles.timelineDot} ${dotClass(mv.movementType)}`} />
+                        {i < movements.length - 1 && <span className={styles.timelineLine} />}
+                      </div>
+                      <div className={styles.timelineContent}>
+                        <div className={styles.timelineTop}>
+                          <span className={`${styles.moveBadge} ${movementClass(mv.movementType)}`}>
+                            {MOVEMENT_LABEL[mv.movementType]}
+                          </span>
+                          <span className={styles.moveQty}>{mv.quantity}</span>
+                          <span className={styles.moveTime}>{formatTime(mv.createdAt)}</span>
+                        </div>
+                        <div className={styles.moveNote}>
+                          {MOVEMENT_NOTE[mv.movementType]}
+                          {mv.orderNumber && (
+                            <>
+                              {' · '}
+                              <span className={styles.moveOrder}>{mv.orderNumber}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className={styles.moveRunning}>
+                          <span>
+                            stock {mv.stockBefore} → {mv.stockAfter}
+                          </span>
+                          {mv.unitCost !== null && <span>unit cost {mv.unitCost.toFixed(2)}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </>
           )}
