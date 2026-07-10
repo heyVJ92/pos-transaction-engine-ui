@@ -7,8 +7,8 @@ const NAV_MAIN = [
   { to: '/admin/overview', label: 'Overview' },
   { to: '/admin/products', label: 'Products' },
   { to: '/admin/inventory', label: 'Inventory' },
-  { to: '/admin/orders', label: 'Orders' },
   { to: '/admin/counters', label: 'Counters' },
+  { to: '/admin/orders', label: 'Orders' },
 ]
 
 const NAV_SYSTEM = [
