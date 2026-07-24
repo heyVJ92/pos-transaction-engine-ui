@@ -53,11 +53,14 @@ export async function listInventoryMovements(
   return { items: data, meta: meta! }
 }
 
-export interface AddInventoryInput {
-  product_uuid: string // snake_case — matches postInventoryBodySchema, the one inconsistent schema
-  availableStock: number
+
+// PUT /inventory/:product_uuid/restock — matches the live restockBodySchema (quantity, unitCost).
+// Response has data: null, so the caller must re-GET the product to see the new stock level.
+export interface RestockInput {
+  quantity: number
+  unitCost: number
 }
 
-export async function addInventory(input: AddInventoryInput): Promise<void> {
-  await apiRequest<null>('/inventory', { method: 'POST', body: JSON.stringify(input) })
+export async function restockInventory(productUuid: string, input: RestockInput): Promise<void> {
+  await apiRequest<null>(`/inventory/${productUuid}/restock`, { method: 'PUT', body: JSON.stringify(input) })
 }
