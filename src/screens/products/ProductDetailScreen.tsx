@@ -12,6 +12,7 @@ import {
   type ProductUpdateInput,
 } from '../../api/products'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import RestockModal from '../../components/products/RestockModal'
 
 function parseNumber(value: string): number {
   return value.trim() === '' ? 0 : Number(value)
@@ -59,6 +60,8 @@ export default function ProductDetailScreen() {
   const [statusConfirmOpen, setStatusConfirmOpen] = useState(false)
   const [statusUpdating, setStatusUpdating] = useState(false)
   const [statusError, setStatusError] = useState<string | null>(null)
+
+  const [restockOpen, setRestockOpen] = useState(false)
 
   const fetchProduct = useCallback(async () => {
     if (!uuid) return
@@ -162,6 +165,11 @@ export default function ProductDetailScreen() {
     }
   }
 
+  const handleRestockSaved = () => {
+    setRestockOpen(false)
+    fetchProduct()
+  }
+
   const handleStatusToggleClick = () => {
     setStatusError(null)
     setStatusConfirmOpen(true)
@@ -253,6 +261,13 @@ export default function ProductDetailScreen() {
             </button>
             <button
               type="button"
+              className={styles.statusToggleButton}
+              onClick={() => setRestockOpen(true)}
+            >
+              Restock
+            </button>
+            <button
+              type="button"
               className={styles.editButton}
               onClick={handleEdit}
               disabled={product.status === 'inactive'}
@@ -284,6 +299,15 @@ export default function ProductDetailScreen() {
           error={statusError}
           onConfirm={handleStatusConfirm}
           onCancel={handleStatusCancel}
+        />
+      )}
+
+      {restockOpen && (
+        <RestockModal
+          productUuid={uuid!}
+          productName={product.name}
+          onClose={() => setRestockOpen(false)}
+          onSaved={handleRestockSaved}
         />
       )}
 
