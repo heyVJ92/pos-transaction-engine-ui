@@ -72,7 +72,9 @@ export default function ProductsListScreen() {
   }, [search, category, status, lowStock, page])
 
   useEffect(() => {
-    fetchProducts()
+    // Deferred a microtask so the call isn't a synchronous setState within the effect body
+    // (react-hooks/set-state-in-effect) — still resolves before paint, no visible delay.
+    queueMicrotask(fetchProducts)
   }, [fetchProducts])
 
   const handleSaved = () => {

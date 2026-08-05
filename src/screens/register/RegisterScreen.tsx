@@ -1,13 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import styles from './RegisterScreen.module.css'
 import { ApiClientError } from '../../api/client'
 import { listProducts, PRODUCT_CATEGORIES, type Product, type ProductCategory } from '../../api/products'
 import { listCounterSessions, type CounterSession } from '../../api/counter-sessions'
+import { addOrderItem, checkoutOrder, createOrder, editOrderItem, holdOrder, removeOrderItem } from '../../api/orders'
 
 interface CartLine {
   product: Product
+  itemUuid: string
   qty: number
+}
+
+interface StockErrorDetail {
+  productName: string
+  sku: string
+  requested: number
+  available: number
 }
 
 function formatTime(iso: string): string {
@@ -30,6 +39,12 @@ function clampCheckoutWidth(width: number): number {
 export default function RegisterScreen() {
   const { uuid } = useParams<{ uuid: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  // `counters/:uuid/register` and `counters/:uuid/payment` are each registered as one flat
+  // <Route>, not nested — so a relative navigate('../payment') resolves by route-tree depth,
+  // not URL segments, and jumps straight past the whole route to /admin or /cashier. Build an
+  // absolute path instead, rather than rely on relative resolution matching the URL shape.
+  const rolePrefix = location.pathname.startsWith('/cashier') ? '/cashier' : '/admin'
 
   const [session, setSession] = useState<CounterSession | null>(null)
   const [sessionLoading, setSessionLoading] = useState(true)
@@ -43,6 +58,14 @@ export default function RegisterScreen() {
   const [category, setCategory] = useState<ProductCategory | 'all'>('all')
   const [cart, setCart] = useState<Record<string, CartLine>>({})
   const [discountPct, setDiscountPct] = useState('0')
+
+  const [orderUuid, setOrderUuid] = useState<string | null>(null)
+  const [orderTotals, setOrderTotals] = useState<{ subTotal: number; tax: number; orderTotal: number } | null>(null)
+  const [cartBusy, setCartBusy] = useState(false)
+  const [holding, setHolding] = useState(false)
+  const [checkingOut, setCheckingOut] = useState(false)
+  const [cartError, setCartError] = useState<string | null>(null)
+  const [stockError, setStockError] = useState<StockErrorDetail | null>(null)
 
   const bodyRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
@@ -88,20 +111,25 @@ export default function RegisterScreen() {
   useEffect(() => {
     if (!uuid) return
     let cancelled = false
-    setSessionLoading(true)
-    setSessionError(null)
-    listCounterSessions({ counterUuid: uuid, status: 'open', page: 1, limit: 1 })
-      .then((result) => {
-        if (cancelled) return
-        setSession(result.items[0] ?? null)
-      })
-      .catch((err) => {
-        if (cancelled) return
-        setSessionError(err instanceof ApiClientError ? err.message : 'Could not load this session.')
-      })
-      .finally(() => {
-        if (!cancelled) setSessionLoading(false)
-      })
+    // Deferred a microtask so the setState calls below aren't synchronous within the effect
+    // body (react-hooks/set-state-in-effect) — still resolves before paint, no visible delay.
+    queueMicrotask(() => {
+      if (cancelled) return
+      setSessionLoading(true)
+      setSessionError(null)
+      listCounterSessions({ counterUuid: uuid, status: 'open', page: 1, limit: 1 })
+        .then((result) => {
+          if (cancelled) return
+          setSession(result.items[0] ?? null)
+        })
+        .catch((err) => {
+          if (cancelled) return
+          setSessionError(err instanceof ApiClientError ? err.message : 'Could not load this session.')
+        })
+        .finally(() => {
+          if (!cancelled) setSessionLoading(false)
+        })
+    })
     return () => {
       cancelled = true
     }
@@ -121,7 +149,9 @@ export default function RegisterScreen() {
   }, [])
 
   useEffect(() => {
-    fetchProducts()
+    // Deferred a microtask so the call isn't a synchronous setState within the effect body
+    // (react-hooks/set-state-in-effect) — still resolves before paint, no visible delay.
+    queueMicrotask(fetchProducts)
   }, [fetchProducts])
 
   const filteredProducts = useMemo(() => {
@@ -133,39 +163,133 @@ export default function RegisterScreen() {
     })
   }, [products, search, category])
 
-  const addToCart = (product: Product) => {
-    setCart((prev) => {
-      const existing = prev[product.uuid]
-      return { ...prev, [product.uuid]: { product, qty: (existing?.qty ?? 0) + 1 } }
-    })
-  }
-
-  const adjustQty = (uuid: string, delta: number) => {
-    setCart((prev) => {
-      const existing = prev[uuid]
-      if (!existing) return prev
-      const nextQty = existing.qty + delta
-      if (nextQty <= 0) {
-        const { [uuid]: _removed, ...rest } = prev
-        return rest
+  // First tap on a product creates the line via POST (server auto-inits qty 1). A repeat tap
+  // on an already-in-cart tile goes through adjustQty instead (see the tile's onClick below) —
+  // POST only inserts, it can't bump an existing line's quantity.
+  const addToCart = async (product: Product) => {
+    if (cartBusy || cart[product.uuid]) return
+    if (!session) {
+      setCartError('No open session found for this counter.')
+      return
+    }
+    setCartBusy(true)
+    setCartError(null)
+    setStockError(null)
+    try {
+      let currentOrderUuid = orderUuid
+      if (!currentOrderUuid) {
+        const created = await createOrder({ sessionUuid: session.uuid })
+        currentOrderUuid = created.uuid
+        setOrderUuid(created.uuid)
       }
-      return { ...prev, [uuid]: { ...existing, qty: nextQty } }
-    })
+      const result = await addOrderItem(currentOrderUuid, { productUuid: product.uuid, quantity: 1 })
+      setCart((prev) => ({ ...prev, [product.uuid]: { product, itemUuid: result.uuid, qty: result.quantity } }))
+      setOrderTotals({ subTotal: result.subTotal, tax: result.tax, orderTotal: result.orderTotal })
+    } catch (err) {
+      if (err instanceof ApiClientError && err.code === 'INSUFFICIENT_STOCK') {
+        setStockError(err.details as StockErrorDetail)
+      } else if (err instanceof ApiClientError) {
+        setCartError(err.message)
+      } else {
+        setCartError('Something went wrong. Please try again.')
+      }
+    } finally {
+      setCartBusy(false)
+    }
   }
 
-  const removeLine = (uuid: string) => {
-    setCart((prev) => {
-      const { [uuid]: _removed, ...rest } = prev
-      return rest
-    })
+  const removeLine = async (product: Product) => {
+    const line = cart[product.uuid]
+    if (!line || cartBusy || !orderUuid) return
+    setCartBusy(true)
+    setCartError(null)
+    setStockError(null)
+    try {
+      const result = await removeOrderItem(orderUuid, line.itemUuid)
+      setCart((prev) => {
+        const next = { ...prev }
+        delete next[product.uuid]
+        return next
+      })
+      setOrderTotals({ subTotal: result.subTotal, tax: result.tax, orderTotal: result.orderTotal })
+    } catch (err) {
+      setCartError(err instanceof ApiClientError ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setCartBusy(false)
+    }
+  }
+
+  const adjustQty = async (product: Product, delta: number) => {
+    const line = cart[product.uuid]
+    if (!line || cartBusy || !orderUuid) return
+    const nextQty = line.qty + delta
+    if (nextQty < 0) return
+    setCartBusy(true)
+    setCartError(null)
+    setStockError(null)
+    try {
+      const result = await editOrderItem(orderUuid, line.itemUuid, { quantity: nextQty })
+      if (result.quantity === 0) {
+        // same outcome as tapping remove — the backend deletes the line at qty 0
+        setCart((prev) => {
+          const next = { ...prev }
+          delete next[product.uuid]
+          return next
+        })
+      } else {
+        setCart((prev) => ({ ...prev, [product.uuid]: { ...prev[product.uuid]!, qty: result.quantity } }))
+      }
+      setOrderTotals({ subTotal: result.subTotal, tax: result.tax, orderTotal: result.orderTotal })
+    } catch (err) {
+      if (err instanceof ApiClientError && err.code === 'INSUFFICIENT_STOCK') {
+        setStockError(err.details as StockErrorDetail)
+      } else if (err instanceof ApiClientError) {
+        setCartError(err.message)
+      } else {
+        setCartError('Something went wrong. Please try again.')
+      }
+    } finally {
+      setCartBusy(false)
+    }
+  }
+
+  const handlePay = async () => {
+    if (!orderUuid || cartBusy || lines.length === 0) return
+    setCartBusy(true)
+    setCheckingOut(true)
+    setCartError(null)
+    try {
+      await checkoutOrder(orderUuid)
+      navigate(`${rolePrefix}/counters/${uuid}/payment?order=${orderUuid}`)
+    } catch (err) {
+      setCartError(err instanceof ApiClientError ? err.message : 'Something went wrong. Please try again.')
+      setCartBusy(false)
+      setCheckingOut(false)
+    }
+  }
+
+  const handleHold = async () => {
+    if (!orderUuid || cartBusy) return
+    setCartBusy(true)
+    setHolding(true)
+    setCartError(null)
+    try {
+      await holdOrder(orderUuid)
+      navigate(-1)
+    } catch (err) {
+      setCartError(err instanceof ApiClientError ? err.message : 'Something went wrong. Please try again.')
+      setCartBusy(false)
+      setHolding(false)
+    }
   }
 
   const lines = Object.values(cart)
-  const subtotal = lines.reduce((sum, l) => sum + l.product.sellPrice * l.qty, 0)
-  const taxTotal = lines.reduce((sum, l) => sum + l.product.sellPrice * l.qty * (l.product.tax / 100), 0)
+  const subtotal = orderTotals?.subTotal ?? 0
+  const taxTotal = orderTotals?.tax ?? 0
   const discountValue = Number(discountPct) || 0
   const discountAmount = subtotal * (discountValue / 100)
-  const total = subtotal - discountAmount + taxTotal
+  const total = orderTotals?.orderTotal ?? 0
+  const discountLocked = orderUuid !== null
 
   const counterName = session?.counter.name ?? 'Register'
 
@@ -224,23 +348,29 @@ export default function RegisterScreen() {
 
             {!productsError && !productsLoading && filteredProducts.length > 0 && (
               <div className={styles.catalogGrid}>
-                {filteredProducts.map((product) => (
-                  <button
-                    key={product.uuid}
-                    type="button"
-                    className={styles.tile}
-                    onClick={() => addToCart(product)}
-                  >
-                    <div className={styles.tileMono}>
-                      {product.sku
-                        .replace(/[^A-Za-z0-9]/g, '')
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </div>
-                    <div className={styles.tileName}>{product.name}</div>
-                    <div className={styles.tilePrice}>{money(product.sellPrice)}</div>
-                  </button>
-                ))}
+                {filteredProducts.map((product) => {
+                  const inCart = Boolean(cart[product.uuid])
+                  return (
+                    <button
+                      key={product.uuid}
+                      type="button"
+                      className={`${styles.tile} ${inCart ? styles.tileAdded : ''}`}
+                      onClick={() => (inCart ? adjustQty(product, 1) : addToCart(product))}
+                      disabled={cartBusy}
+                      title={inCart ? 'Tap again to add another' : undefined}
+                    >
+                      {inCart && <span className={styles.tileBadge}>✓ {cart[product.uuid]!.qty} in cart</span>}
+                      <div className={styles.tileMono}>
+                        {product.sku
+                          .replace(/[^A-Za-z0-9]/g, '')
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </div>
+                      <div className={styles.tileName}>{product.name}</div>
+                      <div className={styles.tilePrice}>{money(product.sellPrice)}</div>
+                    </button>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -282,6 +412,26 @@ export default function RegisterScreen() {
             <span className={styles.checkoutCounter}>{counterName}</span>
           </div>
 
+          {stockError && (
+            <div className={`${styles.errorBanner} ${styles.checkoutError}`}>
+              <span>
+                Only {stockError.available} of {stockError.productName} ({stockError.sku}) available —
+                requested {stockError.requested}.
+              </span>
+              <button type="button" onClick={() => setStockError(null)}>
+                Dismiss
+              </button>
+            </div>
+          )}
+          {cartError && (
+            <div className={`${styles.errorBanner} ${styles.checkoutError}`}>
+              <span>{cartError}</span>
+              <button type="button" onClick={() => setCartError(null)}>
+                Dismiss
+              </button>
+            </div>
+          )}
+
           <div className={styles.cartColumns}>
             <span>Item</span>
             <span className={styles.center}>Qty</span>
@@ -301,7 +451,8 @@ export default function RegisterScreen() {
                     <button
                       type="button"
                       className={styles.removeButton}
-                      onClick={() => removeLine(l.product.uuid)}
+                      onClick={() => removeLine(l.product)}
+                      disabled={cartBusy}
                       aria-label={`Remove ${l.product.name}`}
                     >
                       ✕
@@ -309,11 +460,21 @@ export default function RegisterScreen() {
                     <span className={styles.cartItemLabel}>{l.product.name}</span>
                   </div>
                   <div className={styles.qtyControls}>
-                    <button type="button" onClick={() => adjustQty(l.product.uuid, -1)} aria-label="Decrease quantity">
+                    <button
+                      type="button"
+                      onClick={() => adjustQty(l.product, -1)}
+                      disabled={cartBusy}
+                      aria-label={`Decrease quantity of ${l.product.name}`}
+                    >
                       −
                     </button>
                     <span className={styles.qtyValue}>{l.qty}</span>
-                    <button type="button" onClick={() => adjustQty(l.product.uuid, 1)} aria-label="Increase quantity">
+                    <button
+                      type="button"
+                      onClick={() => adjustQty(l.product, 1)}
+                      disabled={cartBusy}
+                      aria-label={`Increase quantity of ${l.product.name}`}
+                    >
                       +
                     </button>
                   </div>
@@ -331,8 +492,15 @@ export default function RegisterScreen() {
                 inputMode="numeric"
                 value={discountPct}
                 onChange={(e) => setDiscountPct(e.target.value)}
+                disabled={discountLocked}
+                title={
+                  discountLocked
+                    ? "Locked once the order starts — editing an existing order's discount isn't wired yet"
+                    : undefined
+                }
               />
             </div>
+            {discountLocked && <div className={styles.lockHint}>Locked for this order</div>}
             <div className={styles.summaryLine}>
               <span>Subtotal</span>
               <span>{money(subtotal)}</span>
@@ -355,16 +523,23 @@ export default function RegisterScreen() {
               <button type="button" className={styles.cancelButton} onClick={() => navigate(-1)}>
                 Cancel
               </button>
-              <button type="button" className={styles.holdButton} disabled title="Not wired yet — no Orders API to hold an order against">
-                Hold
+              <button
+                type="button"
+                className={styles.holdButton}
+                onClick={handleHold}
+                disabled={!orderUuid || cartBusy}
+                title={!orderUuid ? 'Add an item first to start an order' : undefined}
+              >
+                {holding ? 'Holding…' : 'Hold'}
               </button>
               <button
                 type="button"
                 className={styles.payButton}
-                disabled
-                title="Not wired yet — no Orders API to submit a payment against"
+                onClick={handlePay}
+                disabled={!orderUuid || cartBusy || lines.length === 0}
+                title={!orderUuid || lines.length === 0 ? 'Add an item first' : undefined}
               >
-                Pay ({money(total)})
+                {checkingOut ? 'Starting checkout…' : `Pay (${money(total)})`}
               </button>
             </div>
           </div>

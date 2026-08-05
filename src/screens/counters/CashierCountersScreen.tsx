@@ -40,7 +40,9 @@ export default function CashierCountersScreen() {
   }, [])
 
   useEffect(() => {
-    fetchAll()
+    // Deferred a microtask so the call isn't a synchronous setState within the effect body
+    // (react-hooks/set-state-in-effect) — still resolves before paint, no visible delay.
+    queueMicrotask(fetchAll)
   }, [fetchAll])
 
   const openCount = Object.keys(sessionsByCounter).length

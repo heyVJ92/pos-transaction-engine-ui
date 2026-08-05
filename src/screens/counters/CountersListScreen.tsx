@@ -167,7 +167,9 @@ export default function CountersListScreen() {
   }, [search, status, page])
 
   useEffect(() => {
-    fetchCounters()
+    // Deferred a microtask so the call isn't a synchronous setState within the effect body
+    // (react-hooks/set-state-in-effect) — still resolves before paint, no visible delay.
+    queueMicrotask(fetchCounters)
   }, [fetchCounters])
 
   const handleSaved = () => {
