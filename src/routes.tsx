@@ -9,6 +9,9 @@ import CountersListScreen from './screens/counters/CountersListScreen'
 import CashierCountersScreen from './screens/counters/CashierCountersScreen'
 import RegisterScreen from './screens/register/RegisterScreen'
 import InventoryScreen from './screens/inventory/InventoryScreen'
+import OrdersListScreen from './screens/orders/OrdersListScreen'
+import OrderDetailScreen from './screens/orders/OrderDetailScreen'
+import PaymentScreen from './screens/payment/PaymentScreen'
 
 function EntryRoute() {
   const navigate = useNavigate()
@@ -36,24 +39,21 @@ export default function AppRoutes() {
         <Route path="products" element={<ProductsListScreen />} />
         <Route path="products/:uuid" element={<ProductDetailScreen />} />
         <Route path="inventory" element={<InventoryScreen />} />
-        <Route
-          path="orders"
-          element={<BlockedScreen title="Orders" reason="Blocked — no orders API exists yet (DB migration only)." docsHint="docs/api-reference.md#known-gaps--drift-from-the-prd" />}
-        />
+        <Route path="orders" element={<OrdersListScreen />} />
         <Route
           path="orders/new"
-          element={<BlockedScreen title="Place order" reason="Blocked — no orders API exists yet (DB migration only)." docsHint="docs/api-reference.md#known-gaps--drift-from-the-prd" />}
+          element={
+            <BlockedScreen
+              title="Place order"
+              reason="Not built yet — needs a full catalog + cart + confirm flow on top of POST /orders and the add-item endpoint, separate from Register's cart. Not part of the Orders list wiring pass."
+              docsHint="docs/integration-todo.md"
+            />
+          }
         />
-        <Route
-          path="orders/:id"
-          element={<BlockedScreen title="Order detail" reason="Blocked — no orders API exists yet (DB migration only)." docsHint="docs/api-reference.md#known-gaps--drift-from-the-prd" />}
-        />
+        <Route path="orders/:uuid" element={<OrderDetailScreen />} />
         <Route path="counters" element={<CountersListScreen />} />
         <Route path="counters/:uuid/register" element={<RegisterScreen />} />
-        <Route
-          path="counters/:uuid/payment"
-          element={<BlockedScreen title="Payment" reason="Blocked — no payments API exists yet." docsHint="docs/api-reference.md#known-gaps--drift-from-the-prd" />}
-        />
+        <Route path="counters/:uuid/payment" element={<PaymentScreen />} />
         <Route
           path="audit"
           element={<BlockedScreen title="Audit log" reason="Blocked — no audit_logs migration or API exists at all yet." docsHint="docs/api-reference.md#known-gaps--drift-from-the-prd" />}
@@ -68,10 +68,7 @@ export default function AppRoutes() {
         <Route index element={<Navigate to="counters" replace />} />
         <Route path="counters" element={<CashierCountersScreen />} />
         <Route path="counters/:uuid/register" element={<RegisterScreen />} />
-        <Route
-          path="counters/:uuid/payment"
-          element={<BlockedScreen title="Payment" reason="Blocked — no payments API exists yet." docsHint="docs/api-reference.md#known-gaps--drift-from-the-prd" />}
-        />
+        <Route path="counters/:uuid/payment" element={<PaymentScreen />} />
       </Route>
 
       <Route path="*" element={<BlockedScreen title="Not found" reason="This route doesn't exist." />} />

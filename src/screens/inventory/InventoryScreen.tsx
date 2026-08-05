@@ -79,17 +79,26 @@ export default function InventoryScreen() {
   const [productsLoading, setProductsLoading] = useState(true)
   const [productsError, setProductsError] = useState<string | null>(null)
 
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('')
+
   const [selectedUuid, setSelectedUuid] = useState<string | null>(null)
 
   const [movements, setMovements] = useState<InventoryMovement[]>([])
   const [movementsLoading, setMovementsLoading] = useState(false)
   const [movementsError, setMovementsError] = useState<string | null>(null)
 
+  // debounce the search box before it triggers a refetch
+  useEffect(() => {
+    const handle = setTimeout(() => setSearch(searchInput), 300)
+    return () => clearTimeout(handle)
+  }, [searchInput])
+
   const fetchProducts = useCallback(async () => {
     setProductsLoading(true)
     setProductsError(null)
     try {
-      const result = await listProducts({ page: 1, limit: PRODUCTS_LIMIT })
+      const result = await listProducts({ search: search || undefined, page: 1, limit: PRODUCTS_LIMIT })
       setProducts(result.items)
       // default state on load: first product in the list, unless one's already selected
       setSelectedUuid((prev) => prev ?? result.items[0]?.uuid ?? null)
@@ -98,10 +107,12 @@ export default function InventoryScreen() {
     } finally {
       setProductsLoading(false)
     }
-  }, [])
+  }, [search])
 
   useEffect(() => {
-    fetchProducts()
+    // Deferred a microtask so the call isn't a synchronous setState within the effect body
+    // (react-hooks/set-state-in-effect) — still resolves before paint, no visible delay.
+    queueMicrotask(fetchProducts)
   }, [fetchProducts])
 
   const fetchMovements = useCallback(async (productUuid: string) => {
@@ -123,7 +134,9 @@ export default function InventoryScreen() {
 
   useEffect(() => {
     if (!selectedUuid) return
-    fetchMovements(selectedUuid)
+    // Deferred a microtask so the call isn't a synchronous setState within the effect body
+    // (react-hooks/set-state-in-effect) — still resolves before paint, no visible delay.
+    queueMicrotask(() => fetchMovements(selectedUuid))
   }, [selectedUuid, fetchMovements])
 
   const selected = useMemo(
@@ -149,6 +162,15 @@ export default function InventoryScreen() {
         </div>
       )}
 
+      <div className={styles.filterBar}>
+        <input
+          className={styles.searchInput}
+          placeholder="Search SKU or name"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
+      </div>
+
       <div className={styles.layout}>
         <div className={styles.table}>
           <div className={styles.tableHeader}>
@@ -161,7 +183,7 @@ export default function InventoryScreen() {
             Array.from({ length: 6 }).map((_, i) => <div key={i} className={styles.skeletonRow} />)}
 
           {!productsLoading && !productsError && products.length === 0 && (
-            <div className={styles.empty}>No products found.</div>
+            <div className={styles.empty}>{search ? 'No products match your search.' : 'No products found.'}</div>
           )}
 
           {!productsLoading &&

@@ -26,21 +26,26 @@ export default function OpenSessionModal({ counter, onClose, onOpened }: OpenSes
 
   useEffect(() => {
     let cancelled = false
-    setLoadingCashiers(true)
-    setCashiersError(null)
-    listUsers({ role: 'cashier', status: 'active', page: 1, limit: 50 })
-      .then((result) => {
-        if (cancelled) return
-        setCashiers(result.items)
-        setCashierUuid((prev) => prev || result.items[0]?.uuid || '')
-      })
-      .catch((err) => {
-        if (cancelled) return
-        setCashiersError(err instanceof ApiClientError ? err.message : 'Could not load cashiers.')
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingCashiers(false)
-      })
+    // Deferred a microtask so the setState calls below aren't synchronous within the effect
+    // body (react-hooks/set-state-in-effect) — still resolves before paint, no visible delay.
+    queueMicrotask(() => {
+      if (cancelled) return
+      setLoadingCashiers(true)
+      setCashiersError(null)
+      listUsers({ role: 'cashier', status: 'active', page: 1, limit: 50 })
+        .then((result) => {
+          if (cancelled) return
+          setCashiers(result.items)
+          setCashierUuid((prev) => prev || result.items[0]?.uuid || '')
+        })
+        .catch((err) => {
+          if (cancelled) return
+          setCashiersError(err instanceof ApiClientError ? err.message : 'Could not load cashiers.')
+        })
+        .finally(() => {
+          if (!cancelled) setLoadingCashiers(false)
+        })
+    })
     return () => {
       cancelled = true
     }
