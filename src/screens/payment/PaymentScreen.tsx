@@ -30,6 +30,26 @@ const MODE_LABEL: Record<PaymentMode, string> = {
 
 const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫']
 
+// Maps the payment endpoint's known error codes to cashier-facing copy. Falls through to the raw
+// server message for anything not explicitly listed here, so nothing regresses for an unmapped code.
+function paymentErrorMessage(err: unknown): string {
+  if (!(err instanceof ApiClientError)) return 'Something went wrong. Please try again.'
+  switch (err.code) {
+    case 'INSUFFICIENT_TENDER':
+      return 'Amount tendered is less than the order total — check the amount and try again.'
+    case 'ORDER_NOT_FOUND':
+      return 'This order could not be found — it may have been removed. Go back to Register and start again.'
+    case 'INVALID_STATUS':
+      return "This order isn't ready for payment anymore — run checkout again from Register."
+    case 'IDEMPOTENCY_KEY_CONFLICT':
+      return 'This payment attempt conflicted with another in-flight request for this order. Please retry.'
+    case 'IDEMPOTENCY_IN_PROGRESS':
+      return 'This payment is already being processed — please wait a moment before retrying.'
+    default:
+      return err.message
+  }
+}
+
 export default function PaymentScreen() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -84,10 +104,15 @@ export default function PaymentScreen() {
     setPaying(true)
     setPayError(null)
     try {
-      const paymentResult = await payOrder(orderUuid, { mode, amountTendered })
+      // Fresh key per attempt (per click), not persisted across retries — the Pay button is already
+      // disabled while a request is in flight (`paying`), so there's no same-click retry to preserve
+      // a key across, and the backend hard-conflicts a reused key against a changed payload (e.g. the
+      // tendered amount changing after a failed attempt) — a stable key would misfire that case.
+      const idempotencyKey = crypto.randomUUID()
+      const paymentResult = await payOrder(orderUuid, { mode, amountTendered }, idempotencyKey)
       setResult(paymentResult)
     } catch (err) {
-      setPayError(err instanceof ApiClientError ? err.message : 'Something went wrong. Please try again.')
+      setPayError(paymentErrorMessage(err))
     } finally {
       setPaying(false)
     }

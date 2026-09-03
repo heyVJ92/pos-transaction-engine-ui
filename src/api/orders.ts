@@ -198,9 +198,16 @@ export interface PayOrderResult {
   }
 }
 
-export async function payOrder(orderUuid: string, input: PayOrderInput): Promise<PayOrderResult> {
+// `idempotencyKey` is required by the backend (400 IDEMPOTENCY_KEY_REQUIRED without it) — generated
+// caller-side (one per payment attempt), not here, so the caller controls when a new attempt starts.
+export async function payOrder(
+  orderUuid: string,
+  input: PayOrderInput,
+  idempotencyKey: string,
+): Promise<PayOrderResult> {
   const { data } = await apiRequest<PayOrderResult>(`/orders/${orderUuid}/payment`, {
     method: 'PATCH',
+    headers: { 'Idempotency-Key': idempotencyKey },
     body: JSON.stringify(input),
   })
   return data
