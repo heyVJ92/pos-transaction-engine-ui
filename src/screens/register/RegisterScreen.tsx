@@ -57,7 +57,10 @@ export default function RegisterScreen() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<ProductCategory | 'all'>('all')
   const [cart, setCart] = useState<Record<string, CartLine>>({})
-  const [discountPct, setDiscountPct] = useState('0')
+  // Discounts aren't supported by the API at all (createOrderBodySchema never accepted one, and
+  // there's no edit-discount endpoint) — the field stays in the layout to match the design mockup,
+  // but it's permanently disabled rather than wired to a value that was never actually charged.
+  const [discountPct] = useState('0')
 
   const [orderUuid, setOrderUuid] = useState<string | null>(null)
   const [orderTotals, setOrderTotals] = useState<{ subTotal: number; tax: number; orderTotal: number } | null>(null)
@@ -286,10 +289,7 @@ export default function RegisterScreen() {
   const lines = Object.values(cart)
   const subtotal = orderTotals?.subTotal ?? 0
   const taxTotal = orderTotals?.tax ?? 0
-  const discountValue = Number(discountPct) || 0
-  const discountAmount = subtotal * (discountValue / 100)
   const total = orderTotals?.orderTotal ?? 0
-  const discountLocked = orderUuid !== null
 
   const counterName = session?.counter.name ?? 'Register'
 
@@ -491,26 +491,15 @@ export default function RegisterScreen() {
                 className={styles.discountInput}
                 inputMode="numeric"
                 value={discountPct}
-                onChange={(e) => setDiscountPct(e.target.value)}
-                disabled={discountLocked}
-                title={
-                  discountLocked
-                    ? "Locked once the order starts — editing an existing order's discount isn't wired yet"
-                    : undefined
-                }
+                disabled
+                title="Discounts aren't supported yet — this field doesn't affect the charged total"
               />
             </div>
-            {discountLocked && <div className={styles.lockHint}>Locked for this order</div>}
+            <div className={styles.lockHint}>Discounts aren't supported yet</div>
             <div className={styles.summaryLine}>
               <span>Subtotal</span>
               <span>{money(subtotal)}</span>
             </div>
-            {discountAmount > 0 && (
-              <div className={styles.summaryLine}>
-                <span>Discount</span>
-                <span>−{money(discountAmount)}</span>
-              </div>
-            )}
             <div className={styles.summaryLine}>
               <span>Tax</span>
               <span>{money(taxTotal)}</span>
