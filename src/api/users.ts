@@ -43,3 +43,20 @@ export async function listUsers(params: ListUsersParams): Promise<ListUsersResul
   // meta is always present on this endpoint (sendPaginated) — non-null assertion is safe here.
   return { items: data, meta: meta! }
 }
+
+export async function getCurrentUser(): Promise<User> {
+  const { data } = await apiRequest<User>('/users/me')
+  return data
+}
+
+// email is not included — PATCH /users/me only accepts firstName/lastName (see
+// docs/decisions.md, 2026-09-22: no re-authentication step exists for changing email yet).
+export interface UpdateCurrentUserInput {
+  firstName: string
+  lastName: string
+}
+
+export async function updateCurrentUser(input: UpdateCurrentUserInput): Promise<void> {
+  // PATCH returns data: null — caller must re-GET to see the persisted values.
+  await apiRequest<null>('/users/me', { method: 'PATCH', body: JSON.stringify(input) })
+}

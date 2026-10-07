@@ -1,0 +1,406 @@
+.root {
+  padding: 28px 32px 48px;
+}
+
+.backLink {
+  display: inline-block;
+  font-size: 12.5px;
+  color: var(--text-2);
+  text-decoration: none;
+  margin-bottom: 18px;
+}
+.backLink:hover {
+  color: var(--accent);
+}
+
+.profileHeaderCard {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.profileInfoRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 22px;
+}
+
+.profileAvatarLarge {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.profileInfoText {
+  min-width: 0;
+}
+
+.profileName {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.profileMeta {
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.profileMetaDot {
+  color: var(--text-3);
+}
+
+.editProfileButton {
+  margin-left: auto;
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.editProfileButton:hover {
+  background: var(--hover);
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.statTile {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-3);
+  letter-spacing: -0.01em;
+}
+
+.statLabel {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.statBadge {
+  margin-top: 8px;
+  display: inline-block;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  color: var(--pending-text);
+  background: var(--pending-tint);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 24px;
+}
+
+.splitGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.section {
+  margin-bottom: 0;
+}
+
+.sectionLabel {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+
+.hint {
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--border);
+  font-size: 12px;
+  color: var(--text-3);
+}
+.hint code {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+}
+
+.ordersSkeleton {
+  height: 140px;
+  border-radius: 10px;
+  background: var(--track);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+.ordersList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.orderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.orderRow:last-child {
+  border-bottom: none;
+}
+
+.orderRowMain {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.orderNumber {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.orderDate {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.orderRowMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.orderTotal {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.orderStatusBadge {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--pending-tint);
+  color: var(--pending-text);
+}
+.status_completed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+.status_cancelled,
+.status_expired {
+  background: var(--pending-tint);
+  color: var(--text-3);
+}
+.status_in_process,
+.status_hold {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--pending-tint);
+  color: #e5484d;
+  font-size: 13px;
+}
+.errorBanner button {
+  background: none;
+  border: 0.5px solid currentColor;
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+}
+
+.idCardSection {
+  padding-left: 32px;
+  border-left: 0.5px solid var(--border);
+}
+
+/* Fixed light-on-navy palette, independent of the app's light/dark theme — this is meant to read
+   as a physical badge (like a printed card would), not a themed app panel. Constrained to a
+   portrait card width and centered — it shouldn't stretch to fill its half of the split layout. */
+.idCard {
+  position: relative;
+  width: 100%;
+  max-width: 240px;
+  margin: 0 auto;
+  background: #fdfdfd;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.idCardBand {
+  position: relative;
+  background: #0f1b33;
+  padding: 12px 18px;
+  overflow: hidden;
+}
+
+.idCardBrand {
+  position: relative;
+  z-index: 1;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.idCardAccent {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 46px 46px 0;
+  border-color: transparent var(--accent) transparent transparent;
+}
+
+.idCardBody {
+  padding: 18px 20px 20px;
+  text-align: center;
+}
+
+.idCardPhoto {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto;
+  border-radius: 10px;
+  background: #eef1f6;
+  border: 1px solid rgba(15, 27, 51, 0.08);
+  color: #0f1b33;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 27px;
+  font-weight: 700;
+}
+
+.idCardName {
+  margin-top: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #111318;
+}
+
+.idCardRoleLine {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #5b6472;
+}
+
+.idCardDetails {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 0.5px solid rgba(15, 27, 51, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  text-align: left;
+}
+
+.idCardDetailRow {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.idCardDetailLabel {
+  width: 92px;
+  flex-shrink: 0;
+  color: #5b6472;
+}
+
+.idCardDetailValue {
+  color: #111318;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  word-break: break-word;
+}
+
+.idCardBandBottom {
+  position: relative;
+  height: 14px;
+  background: #0f1b33;
+  overflow: hidden;
+}
+
+.idCardAccentBottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 14px 34px 0 0;
+  border-color: var(--accent) transparent transparent transparent;
+}
+
+.skeleton {
+  height: 220px;
+  border-radius: 12px;
+  background: var(--track);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
