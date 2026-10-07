@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import Modal from '../Modal'
+import Dropdown from '../Dropdown'
 import styles from './OpenSessionModal.module.css'
 import { ApiClientError, extractFieldErrors } from '../../api/client'
 import { openCounterSession } from '../../api/counter-sessions'
@@ -104,21 +105,17 @@ export default function OpenSessionModal({ counter, onClose, onOpened }: OpenSes
           {cashiersError ? (
             <div className={styles.errorText}>{cashiersError}</div>
           ) : (
-            <select
+            <Dropdown
               id="session-cashier"
+              className={styles.fieldDropdown}
+              triggerClassName={styles.fieldDropdownTrigger}
               value={cashierUuid}
-              onChange={(e) => setCashierUuid(e.target.value)}
-              className={fieldErrors.cashierUuid ? styles.fieldError : ''}
-              disabled={submitting || loadingCashiers}
-            >
-              {loadingCashiers && <option value="">Loading…</option>}
-              {!loadingCashiers && cashiers.length === 0 && <option value="">No active cashiers found</option>}
-              {cashiers.map((c) => (
-                <option key={c.uuid} value={c.uuid}>
-                  {c.firstName} {c.lastName}
-                </option>
-              ))}
-            </select>
+              onChange={setCashierUuid}
+              error={!!fieldErrors.cashierUuid}
+              disabled={submitting || loadingCashiers || cashiers.length === 0}
+              placeholder={loadingCashiers ? 'Loading…' : cashiers.length === 0 ? 'No active cashiers found' : undefined}
+              options={cashiers.map((c) => ({ value: c.uuid, label: `${c.firstName} ${c.lastName}` }))}
+            />
           )}
           {fieldErrors.cashierUuid && <div className={styles.errorText}>{fieldErrors.cashierUuid}</div>}
         </div>

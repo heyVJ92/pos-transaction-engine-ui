@@ -12,6 +12,7 @@ import {
   type ProductUpdateInput,
 } from '../../api/products'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import Dropdown from '../../components/Dropdown'
 import RestockModal from '../../components/products/RestockModal'
 
 function parseNumber(value: string): number {
@@ -355,20 +356,17 @@ export default function ProductDetailScreen() {
               <label htmlFor="detail-category">Category</label>
               {isEdit ? (
                 <>
-                  <select
+                  <Dropdown
                     id="detail-category"
+                    className={styles.fieldDropdown}
+                    triggerClassName={styles.fieldDropdownTrigger}
                     value={form!.category}
-                    onChange={(e) => setField('category', e.target.value)}
-                    className={fieldErrors.category ? styles.fieldError : ''}
+                    onChange={(v) => setField('category', v)}
+                    error={!!fieldErrors.category}
                     disabled={saving}
-                  >
-                    <option value="">Select category</option>
-                    {PRODUCT_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Select category"
+                    options={PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c }))}
+                  />
                   {fieldErrors.category && <div className={styles.errorText}>{fieldErrors.category}</div>}
                 </>
               ) : (

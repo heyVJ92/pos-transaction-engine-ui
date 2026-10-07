@@ -36,8 +36,7 @@
   margin-bottom: 6px;
 }
 
-.field input,
-.field select {
+.field input {
   width: 100%;
   background: var(--bg);
   border: 0.5px solid var(--border-strong);
@@ -48,11 +47,18 @@
   color: var(--text);
 }
 
-.field input:focus,
-.field select:focus {
+.field input:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.fieldDropdown {
+  width: 100%;
+}
+.fieldDropdownTrigger {
+  background: var(--bg);
+  font-size: 13.5px;
 }
 
 .fieldError {
