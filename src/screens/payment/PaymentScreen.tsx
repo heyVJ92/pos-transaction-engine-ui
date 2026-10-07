@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import styles from './PaymentScreen.module.css'
+import Dropdown from '../../components/Dropdown'
 import { ApiClientError } from '../../api/client'
 import { getOrder, payOrder, type OrderDetail, type PaymentMode, type PayOrderResult } from '../../api/orders'
 
@@ -249,18 +250,19 @@ export default function PaymentScreen() {
 
           <div className={styles.payPanel}>
             <div className={styles.metaLabel}>select a payment method</div>
-            <select
+            <Dropdown
               className={styles.modeSelect}
               value={mode}
-              onChange={(e) => {
-                setMode(e.target.value as PaymentMode)
+              onChange={(v) => {
+                setMode(v as PaymentMode)
                 setPayError(null)
               }}
-            >
-              <option value="cash">Cash</option>
-              <option value="card">Card</option>
-              <option value="upi">UPI</option>
-            </select>
+              options={[
+                { value: 'cash', label: 'Cash' },
+                { value: 'card', label: 'Card' },
+                { value: 'upi', label: 'UPI' },
+              ]}
+            />
 
             {payError && <div className={styles.payError}>{payError}</div>}
 

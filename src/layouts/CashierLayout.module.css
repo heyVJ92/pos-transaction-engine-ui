@@ -75,6 +75,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .roleAvatar {
@@ -97,38 +99,16 @@
 }
 
 .exitLink {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 11px;
   color: var(--text-3);
   text-decoration: none;
 }
 .exitLink:hover {
   color: var(--text-2);
-}
-
-.themeToggle {
-  display: flex;
-  padding: 2px;
-  border-radius: 8px;
-  background: var(--track);
-  border: 0.5px solid var(--border);
-}
-
-.themeTab {
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  color: var(--text-3);
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  font-size: 10.5px;
-  padding: 4px 9px;
-  border-radius: 6px;
-  transition: all 0.15s;
-}
-
-.themeTabActive {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 1px 2px var(--mark-shadow);
 }
 
 .main {

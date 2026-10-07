@@ -1,0 +1,32 @@
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 0.5px solid var(--border);
+  background: var(--track);
+  cursor: pointer;
+  padding: 0;
+}
+
+.thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px var(--mark-shadow);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.thumbDark {
+  transform: translateX(22px);
+  color: var(--accent);
+}

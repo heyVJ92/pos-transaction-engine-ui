@@ -61,5 +61,5 @@ export async function reactivateCounter(uuid: string): Promise<void> {
   // status:"active" is the one PUT body the server accepts on an inactive counter (2026-07-04 addition
   // to stockapi — see docs/decisions.md). Any other field alongside it still requires the row to
   // already be active, per the server's guard.
-  await apiRequest<null>(`/counters/${uuid}`, { method: 'PUT', body: JSON.stringify({ status: 'active' }) })
+  await apiRequest<null>(`/counters/${uuid}`, { method: 'PATCH', body: JSON.stringify({ status: 'active' }) })
 }

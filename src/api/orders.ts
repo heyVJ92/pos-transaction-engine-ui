@@ -20,6 +20,11 @@ export interface Order {
 
 export interface ListOrdersParams {
   search?: string
+  status?: OrderStatus
+  // Partial, case-insensitive match against `CONCAT(first_name, ' ', last_name)` server-side —
+  // not an exact userId/uuid filter (the schema has none). Two staff sharing an identical full
+  // name would both match; acceptable for "recent orders by me" until a real userId filter exists.
+  userName?: string
   page: number
   limit: number
 }
@@ -32,6 +37,8 @@ export interface ListOrdersResult {
 export async function listOrders(params: ListOrdersParams): Promise<ListOrdersResult> {
   const query = new URLSearchParams()
   if (params.search) query.set('search', params.search)
+  if (params.status) query.set('status', params.status)
+  if (params.userName) query.set('userName', params.userName)
   query.set('page', String(params.page))
   query.set('limit', String(params.limit))
 
@@ -133,6 +140,13 @@ export async function holdOrder(orderUuid: string): Promise<HoldOrderResult> {
     method: 'PATCH',
   })
   return data
+}
+
+// backend returns `data: null` on success — nothing to hand back to the caller
+export async function cancelOrder(orderUuid: string): Promise<void> {
+  await apiRequest<null>(`/orders/${orderUuid}/cancel`, {
+    method: 'PATCH',
+  })
 }
 
 export interface EditOrderItemInput {

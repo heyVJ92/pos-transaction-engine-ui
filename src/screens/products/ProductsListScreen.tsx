@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import styles from './ProductsListScreen.module.css'
+import Dropdown from '../../components/Dropdown'
 import Pagination from '../../components/Pagination'
 import ProductFormModal from '../../components/products/ProductFormModal'
 import { ApiClientError, type ApiMeta } from '../../api/client'
@@ -109,35 +110,37 @@ export default function ProductsListScreen() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <select
+        <Dropdown
           className={styles.filterSelect}
           value={category}
-          onChange={(e) => updateParams({ category: e.target.value || undefined, page: undefined })}
-        >
-          <option value="">All categories</option>
-          {PRODUCT_CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        <select
+          onChange={(v) => updateParams({ category: v || undefined, page: undefined })}
+          placeholder="All categories"
+          options={[
+            { value: '', label: 'All categories' },
+            ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c })),
+          ]}
+        />
+        <Dropdown
           className={styles.filterSelect}
           value={status}
-          onChange={(e) => updateParams({ status: e.target.value || undefined, page: undefined })}
-        >
-          <option value="">All statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-        <select
+          onChange={(v) => updateParams({ status: v || undefined, page: undefined })}
+          placeholder="All statuses"
+          options={[
+            { value: '', label: 'All statuses' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
+          ]}
+        />
+        <Dropdown
           className={styles.filterSelect}
           value={lowStock ? 'true' : ''}
-          onChange={(e) => updateParams({ lowStock: e.target.value || undefined, page: undefined })}
-        >
-          <option value="">All stock levels</option>
-          <option value="true">Low stock only</option>
-        </select>
+          onChange={(v) => updateParams({ lowStock: v || undefined, page: undefined })}
+          placeholder="All stock levels"
+          options={[
+            { value: '', label: 'All stock levels' },
+            { value: 'true', label: 'Low stock only' },
+          ]}
+        />
       </div>
 
       {error && (

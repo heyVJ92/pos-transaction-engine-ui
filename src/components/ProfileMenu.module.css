@@ -1,0 +1,207 @@
+.wrap {
+  position: relative;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 12px 5px 5px;
+  border-radius: 999px;
+  border: 0.5px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+}
+.trigger:hover {
+  background: var(--hover);
+}
+
+.triggerSidebar {
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  padding: 8px;
+}
+
+.triggerCollapsed {
+  justify-content: center;
+  padding: 8px;
+}
+
+.avatarWrap,
+.dropdownAvatarWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusDot {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2dd4a4;
+  border: 1.5px solid var(--surface);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.subtitle {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 250px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  padding: 8px;
+  z-index: 20;
+}
+
+/* Anchored at the bottom of the sidebar — there's no room below it, and its right edge (250px)
+   would overflow past a 244px-wide sidebar, so this opens upward and left-aligned instead. */
+.dropdownSidebar {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + 8px);
+  left: 0;
+}
+
+.dropdownHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 10px;
+}
+
+.dropdownAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dropdownHeaderText {
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.dropdownHeaderName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dropdownHeaderSubtitle {
+  font-size: 11.5px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.divider {
+  height: 0.5px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 8px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  text-decoration: none;
+}
+.dropdownItem:hover {
+  background: var(--hover);
+}
+
+.dropdownThemeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 8px;
+  border-radius: 8px;
+}
+
+.dropdownThemeLabel {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.dropdownFooter {
+  padding-top: 4px;
+}
+
+.logoutButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  border-radius: 999px;
+  border: 0.5px solid var(--border-strong);
+  background: var(--bg);
+  color: #e5484d;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.logoutButton:hover {
+  background: rgba(229, 72, 77, 0.08);
+  border-color: #e5484d;
+}

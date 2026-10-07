@@ -50,6 +50,26 @@
   color: var(--text-3);
 }
 
+.loadOrderButton {
+  margin-left: auto;
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 13px;
+  border-radius: 8px;
+}
+.loadOrderButton:hover:not(:disabled) {
+  background: var(--hover);
+}
+.loadOrderButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .body {
   flex: 1;
   min-height: 0;

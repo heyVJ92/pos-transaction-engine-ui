@@ -1,13 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import styles from './RegisterScreen.module.css'
 import { ApiClientError } from '../../api/client'
 import { listProducts, PRODUCT_CATEGORIES, type Product, type ProductCategory } from '../../api/products'
 import { listCounterSessions, type CounterSession } from '../../api/counter-sessions'
-import { addOrderItem, checkoutOrder, createOrder, editOrderItem, holdOrder, removeOrderItem } from '../../api/orders'
+import {
+  addOrderItem,
+  cancelOrder,
+  checkoutOrder,
+  createOrder,
+  editOrderItem,
+  getOrder,
+  holdOrder,
+  removeOrderItem,
+  type OrderDetail,
+} from '../../api/orders'
+import ConfirmDialog from '../../components/ConfirmDialog'
+import LoadOrderModal from '../../components/orders/LoadOrderModal'
+
+// A loaded order's line item carries product name/sku/sellPrice but not the full catalog `Product`
+// shape (category, stock, etc.) — cart rendering only ever reads uuid/name/sku/sellPrice, so this
+// minimal stand-in is enough to reuse the same CartLine shape without a fresh catalog lookup.
+type CartProduct = Pick<Product, 'uuid' | 'name' | 'sku' | 'sellPrice'>
 
 interface CartLine {
-  product: Product
+  product: CartProduct
   itemUuid: string
   qty: number
 }
@@ -40,6 +57,7 @@ export default function RegisterScreen() {
   const { uuid } = useParams<{ uuid: string }>()
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
   // `counters/:uuid/register` and `counters/:uuid/payment` are each registered as one flat
   // <Route>, not nested — so a relative navigate('../payment') resolves by route-tree depth,
   // not URL segments, and jumps straight past the whole route to /admin or /cashier. Build an
@@ -67,6 +85,9 @@ export default function RegisterScreen() {
   const [cartBusy, setCartBusy] = useState(false)
   const [holding, setHolding] = useState(false)
   const [checkingOut, setCheckingOut] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [showLoadOrder, setShowLoadOrder] = useState(false)
   const [cartError, setCartError] = useState<string | null>(null)
   const [stockError, setStockError] = useState<StockErrorDetail | null>(null)
 
@@ -201,7 +222,7 @@ export default function RegisterScreen() {
     }
   }
 
-  const removeLine = async (product: Product) => {
+  const removeLine = async (product: CartProduct) => {
     const line = cart[product.uuid]
     if (!line || cartBusy || !orderUuid) return
     setCartBusy(true)
@@ -222,7 +243,7 @@ export default function RegisterScreen() {
     }
   }
 
-  const adjustQty = async (product: Product, delta: number) => {
+  const adjustQty = async (product: CartProduct, delta: number) => {
     const line = cart[product.uuid]
     if (!line || cartBusy || !orderUuid) return
     const nextQty = line.qty + delta
@@ -286,6 +307,84 @@ export default function RegisterScreen() {
     }
   }
 
+  const handleCancelConfirmed = async () => {
+    if (!orderUuid || cartBusy) return
+    setCartBusy(true)
+    setCancelling(true)
+    setCartError(null)
+    try {
+      await cancelOrder(orderUuid)
+      navigate(-1)
+    } catch (err) {
+      setCartError(err instanceof ApiClientError ? err.message : 'Something went wrong. Please try again.')
+      setCartBusy(false)
+      setCancelling(false)
+      setShowCancelConfirm(false)
+    }
+  }
+
+  // Rebuilds the cart from a picked draft/hold order's own line items (each item already carries
+  // its own sellPrice/quantity/product name+sku) rather than re-fetching the catalog. The picker
+  // only ever *queries* draft/hold orders, but the order's status can still have moved on between
+  // that list fetch and this call (another session cancelled/checked it out) — re-check here rather
+  // than trust the picker's snapshot, same guard `addToCart` already applies for a missing session.
+  const handleLoadOrder = useCallback(
+    (order: OrderDetail) => {
+      if (order.status !== 'draft' && order.status !== 'hold') {
+        setCartError('This order is no longer available to load — its status changed.')
+        return
+      }
+      if (!session) {
+        setCartError('No open session found for this counter.')
+        return
+      }
+      const nextCart: Record<string, CartLine> = {}
+      for (const item of order.items) {
+        nextCart[item.product.uuid] = {
+          product: { uuid: item.product.uuid, name: item.product.name, sku: item.product.sku, sellPrice: item.sellPrice },
+          itemUuid: item.uuid,
+          qty: item.quantity,
+        }
+      }
+      setCart(nextCart)
+      setOrderUuid(order.uuid)
+      setOrderTotals({ subTotal: order.subTotal, tax: order.tax, orderTotal: order.total })
+      setCartError(null)
+      setStockError(null)
+      setShowLoadOrder(false)
+    },
+    [session],
+  )
+
+  // Preloads an order from `?order=<uuid>` — the entry point OrderDetailScreen's "Load order"
+  // button uses to hand off a draft/hold order to this counter's cart, since Register has no way
+  // to receive an order except via its own in-page picker otherwise. Waits for the session fetch
+  // to settle first (handleLoadOrder needs `session` to already be resolved, same as the picker
+  // path), and only ever runs once per param — the param is stripped from the URL immediately
+  // after so a later refresh/back-nav doesn't silently re-run it over further cart edits.
+  useEffect(() => {
+    const preloadUuid = searchParams.get('order')
+    if (!preloadUuid || sessionLoading) return
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete('order')
+      return next
+    }, { replace: true })
+    let cancelled = false
+    getOrder(preloadUuid)
+      .then((detail) => {
+        if (cancelled) return
+        handleLoadOrder(detail)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setCartError(err instanceof ApiClientError ? err.message : 'Could not load this order.')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [searchParams, sessionLoading, setSearchParams, handleLoadOrder])
+
   const lines = Object.values(cart)
   const subtotal = orderTotals?.subTotal ?? 0
   const taxTotal = orderTotals?.tax ?? 0
@@ -311,6 +410,15 @@ export default function RegisterScreen() {
                   : 'no open session found for this counter'}
           </div>
         </div>
+        <button
+          type="button"
+          className={styles.loadOrderButton}
+          onClick={() => setShowLoadOrder(true)}
+          disabled={orderUuid !== null}
+          title={orderUuid !== null ? 'Hold or cancel the current order first' : undefined}
+        >
+          Load order
+        </button>
       </header>
 
       <div className={styles.body} ref={bodyRef}>
@@ -509,7 +617,11 @@ export default function RegisterScreen() {
               <span>{money(total)}</span>
             </div>
             <div className={styles.actionRow}>
-              <button type="button" className={styles.cancelButton} onClick={() => navigate(-1)}>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={() => (orderUuid ? setShowCancelConfirm(true) : navigate(-1))}
+              >
                 Cancel
               </button>
               <button
@@ -534,6 +646,21 @@ export default function RegisterScreen() {
           </div>
         </div>
       </div>
+
+      {showCancelConfirm && (
+        <ConfirmDialog
+          title="Cancel order"
+          message="This will cancel the order and restore any reserved stock. This can't be undone."
+          confirmLabel="Cancel order"
+          cancelLabel="Keep working"
+          danger
+          busy={cancelling}
+          onConfirm={handleCancelConfirmed}
+          onCancel={() => setShowCancelConfirm(false)}
+        />
+      )}
+
+      {showLoadOrder && <LoadOrderModal onClose={() => setShowLoadOrder(false)} onLoad={handleLoadOrder} />}
     </div>
   )
 }

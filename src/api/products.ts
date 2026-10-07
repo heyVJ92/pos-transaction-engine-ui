@@ -75,6 +75,8 @@ export interface ProductFormInput {
   costPrice: number
   sellPrice: number
   tax: number
+  minQty: number
+  maxQty: number | null
 }
 
 export async function createProduct(input: ProductFormInput): Promise<void> {

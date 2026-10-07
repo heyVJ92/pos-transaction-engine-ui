@@ -1,10 +1,24 @@
-import { useState } from 'react'
-import { Outlet, Link } from 'react-router-dom'
+import { Outlet, Link, useNavigate } from 'react-router-dom'
 import styles from './CashierLayout.module.css'
-import { THEMES, type Theme } from '../theme'
+import { THEMES, useTheme } from '../theme'
+import { useAuth } from '../auth/useAuth'
+import type { Role } from '../auth/token'
+import ThemeToggle from '../components/ThemeToggle'
+
+const ROLE_LABEL: Record<Role, string> = { admin: 'admin', cashier: 'cashier' }
 
 export default function CashierLayout() {
-  const [theme, setTheme] = useState<Theme>('light')
+  const [theme, setTheme] = useTheme()
+  const { role, logout } = useAuth()
+  const navigate = useNavigate()
+
+  // "exit" previously just navigated to "/" without clearing the token — LoginRoute sees a still-
+  // valid token and immediately redirects right back in, so the link silently did nothing. Fixed
+  // by actually calling logout() before navigating.
+  const handleExit = () => {
+    logout()
+    navigate('/')
+  }
 
   return (
     <div className={styles.root} style={THEMES[theme]} data-screen-label="Cashier">
@@ -22,27 +36,12 @@ export default function CashierLayout() {
         </div>
 
         <div className={styles.actions}>
-          <div className={styles.roleBadge}>
-            <div className={styles.roleAvatar}>C</div>
-            <span className={styles.roleLabel}>cashier</span>
-          </div>
-          <Link to="/" className={styles.exitLink}>exit</Link>
-          <div className={styles.themeToggle}>
-            <button
-              type="button"
-              onClick={() => setTheme('light')}
-              className={`${styles.themeTab} ${theme === 'light' ? styles.themeTabActive : ''}`}
-            >
-              light
-            </button>
-            <button
-              type="button"
-              onClick={() => setTheme('dark')}
-              className={`${styles.themeTab} ${theme === 'dark' ? styles.themeTabActive : ''}`}
-            >
-              dark
-            </button>
-          </div>
+          <Link to="/cashier/settings" className={styles.roleBadge}>
+            <div className={styles.roleAvatar}>{role ? ROLE_LABEL[role].charAt(0).toUpperCase() : '?'}</div>
+            <span className={styles.roleLabel}>{role ? ROLE_LABEL[role] : 'signed in'}</span>
+          </Link>
+          <button type="button" className={styles.exitLink} onClick={handleExit}>exit</button>
+          <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
       </header>
 

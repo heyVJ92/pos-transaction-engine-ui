@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import styles from './CountersListScreen.module.css'
+import Dropdown from '../../components/Dropdown'
 import Pagination from '../../components/Pagination'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import CounterFormModal from '../../components/counters/CounterFormModal'
@@ -232,15 +233,17 @@ export default function CountersListScreen() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <select
+        <Dropdown
           className={styles.filterSelect}
           value={status}
-          onChange={(e) => updateParams({ status: e.target.value || undefined, page: undefined })}
-        >
-          <option value="">All statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          onChange={(v) => updateParams({ status: v || undefined, page: undefined })}
+          placeholder="All statuses"
+          options={[
+            { value: '', label: 'All statuses' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
+          ]}
+        />
       </div>
 
       {error && (

@@ -1,30 +1,7 @@
-.counterInfo {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  background: var(--bg);
-  border: 0.5px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 16px;
-}
-
-.counterName {
-  font-size: 13.5px;
-  font-weight: 550;
-  color: var(--text);
-}
-
-.counterCode {
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  font-size: 11.5px;
-  color: var(--text-3);
-}
-
-.field {
-  margin-bottom: 14px;
-}
-.field:last-of-type {
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
   margin-bottom: 0;
 }
 
@@ -51,14 +28,6 @@
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
-}
-
-.fieldDropdown {
-  width: 100%;
-}
-.fieldDropdownTrigger {
-  background: var(--bg);
-  font-size: 13.5px;
 }
 
 .fieldError {

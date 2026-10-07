@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import Modal from '../Modal'
+import Dropdown from '../Dropdown'
 import styles from './ProductFormModal.module.css'
 import { ApiClientError, extractFieldErrors } from '../../api/client'
 import { createProduct, PRODUCT_CATEGORIES, type ProductCategory, type ProductFormInput } from '../../api/products'
@@ -22,10 +23,19 @@ export default function ProductFormModal({ onClose, onSaved }: ProductFormModalP
   const [sellPrice, setSellPrice] = useState('')
   const [tax, setTax] = useState('')
   const [weight, setWeight] = useState('')
+  const [minQty, setMinQty] = useState('')
+  const [maxQty, setMaxQty] = useState('')
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  const sellBelowCost =
+    costPrice.trim() !== '' &&
+    sellPrice.trim() !== '' &&
+    !Number.isNaN(Number(costPrice)) &&
+    !Number.isNaN(Number(sellPrice)) &&
+    Number(sellPrice) < Number(costPrice)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -33,19 +43,36 @@ export default function ProductFormModal({ onClose, onSaved }: ProductFormModalP
 
     const errors: Record<string, string> = {}
     if (!name.trim()) errors.name = 'Name is required.'
+    else if (name.trim().length > 255) errors.name = 'Must be 255 characters or fewer.'
+
     if (!sku.trim()) errors.sku = 'SKU is required.'
+    else if (sku.trim().length > 50) errors.sku = 'Must be 50 characters or fewer.'
+
     if (!category) errors.category = 'Select a category.'
 
     const numericFields: [string, string][] = [
       ['costPrice', costPrice],
       ['sellPrice', sellPrice],
-      ['tax', tax],
       ['weight', weight],
+      ['minQty', minQty],
     ]
     for (const [key, value] of numericFields) {
       if (value.trim() === '') continue
       const parsed = Number(value)
       if (Number.isNaN(parsed) || parsed < 0) errors[key] = 'Must be a number ≥ 0.'
+    }
+
+    if (tax.trim() !== '') {
+      const parsed = Number(tax)
+      if (Number.isNaN(parsed) || parsed < 0 || parsed > 100) errors.tax = 'Must be between 0 and 100.'
+    }
+
+    if (maxQty.trim() !== '') {
+      const parsed = Number(maxQty)
+      if (Number.isNaN(parsed) || parsed < 0) errors.maxQty = 'Must be a number ≥ 0.'
+      else if (minQty.trim() !== '' && !errors.minQty && parsed < Number(minQty)) {
+        errors.maxQty = 'Max must be ≥ min.'
+      }
     }
 
     setFieldErrors(errors)
@@ -59,6 +86,8 @@ export default function ProductFormModal({ onClose, onSaved }: ProductFormModalP
       sellPrice: parseNumber(sellPrice),
       tax: parseNumber(tax),
       weight: parseNumber(weight),
+      minQty: parseNumber(minQty),
+      maxQty: maxQty.trim() === '' ? null : Number(maxQty),
     }
 
     setSubmitting(true)
@@ -105,6 +134,7 @@ export default function ProductFormModal({ onClose, onSaved }: ProductFormModalP
               <label htmlFor="product-sku">SKU</label>
               <input
                 id="product-sku"
+                placeholder="XXX-XXX-000"
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
                 className={fieldErrors.sku ? styles.fieldError : ''}
@@ -114,20 +144,17 @@ export default function ProductFormModal({ onClose, onSaved }: ProductFormModalP
             </div>
             <div className={styles.field}>
               <label htmlFor="product-category">Category</label>
-              <select
+              <Dropdown
                 id="product-category"
+                className={styles.fieldDropdown}
+                triggerClassName={styles.fieldDropdownTrigger}
                 value={category}
-                onChange={(e) => setCategory(e.target.value as ProductCategory)}
-                className={fieldErrors.category ? styles.fieldError : ''}
+                onChange={(v) => setCategory(v as ProductCategory)}
+                error={!!fieldErrors.category}
                 disabled={submitting}
-              >
-                <option value="">Select category</option>
-                {PRODUCT_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                placeholder="Select category"
+                options={PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c }))}
+              />
               {fieldErrors.category && <div className={styles.errorText}>{fieldErrors.category}</div>}
             </div>
           </div>
@@ -159,6 +186,9 @@ export default function ProductFormModal({ onClose, onSaved }: ProductFormModalP
                 disabled={submitting}
               />
               {fieldErrors.sellPrice && <div className={styles.errorText}>{fieldErrors.sellPrice}</div>}
+              {!fieldErrors.sellPrice && sellBelowCost && (
+                <div className={styles.warningText}>Sell price is below cost price.</div>
+              )}
             </div>
             <div className={styles.field}>
               <label htmlFor="product-tax">Tax rate %</label>
@@ -183,6 +213,33 @@ export default function ProductFormModal({ onClose, onSaved }: ProductFormModalP
                 disabled={submitting}
               />
               {fieldErrors.weight && <div className={styles.errorText}>{fieldErrors.weight}</div>}
+            </div>
+          </div>
+          <div className={`${styles.row} ${styles.row2}`}>
+            <div className={styles.field}>
+              <label htmlFor="product-min-qty">Min stock qty</label>
+              <input
+                id="product-min-qty"
+                inputMode="decimal"
+                value={minQty}
+                onChange={(e) => setMinQty(e.target.value)}
+                className={fieldErrors.minQty ? styles.fieldError : ''}
+                disabled={submitting}
+              />
+              {fieldErrors.minQty && <div className={styles.errorText}>{fieldErrors.minQty}</div>}
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="product-max-qty">Max stock qty</label>
+              <input
+                id="product-max-qty"
+                inputMode="decimal"
+                placeholder="No max"
+                value={maxQty}
+                onChange={(e) => setMaxQty(e.target.value)}
+                className={fieldErrors.maxQty ? styles.fieldError : ''}
+                disabled={submitting}
+              />
+              {fieldErrors.maxQty && <div className={styles.errorText}>{fieldErrors.maxQty}</div>}
             </div>
           </div>
         </div>
