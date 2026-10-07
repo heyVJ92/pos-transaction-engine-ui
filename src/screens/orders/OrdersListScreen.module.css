@@ -23,18 +23,6 @@
   color: var(--text-2);
 }
 
-.addButton {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 9px 15px;
-  border-radius: 8px;
-}
-
 .filterBar {
   display: flex;
   gap: 10px;

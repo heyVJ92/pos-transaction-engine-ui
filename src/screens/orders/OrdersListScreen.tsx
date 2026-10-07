@@ -109,9 +109,6 @@ export default function OrdersListScreen() {
           <h1 className={styles.title}>Orders</h1>
           <p className={styles.subtitle}>{loading ? 'Loading…' : `${meta.total} order${meta.total === 1 ? '' : 's'}`}</p>
         </div>
-        <button type="button" className={styles.addButton} onClick={() => navigate('new')}>
-          Place order
-        </button>
       </div>
 
       <div className={styles.filterBar}>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import styles from './OrderDetailScreen.module.css'
 import { ApiClientError } from '../../api/client'
 import { getOrder, type OrderDetail, type OrderStatus } from '../../api/orders'
@@ -21,8 +21,18 @@ function money(n: number): string {
   return `$${n.toFixed(2)}`
 }
 
+// `payment` is written by PATCH /orders/:uuid/payment but has no GET endpoint anywhere (confirmed
+// via backend verification, see docs/backend-verification-todo.md's 2026-09-23 row) — static
+// placeholder values per explicit instruction, to be replaced once a real endpoint exists.
+const STATIC_PAYMENT = {
+  method: 'Cash',
+  amountTendered: 0,
+  change: 0,
+}
+
 export default function OrderDetailScreen() {
   const { uuid } = useParams<{ uuid: string }>()
+  const navigate = useNavigate()
 
   const [order, setOrder] = useState<OrderDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -87,6 +97,15 @@ export default function OrderDetailScreen() {
           <span className={styles.statusDot} />
           {STATUS_LABEL[order.status] ?? order.status}
         </span>
+        {(order.status === 'draft' || order.status === 'hold') && (
+          <button
+            type="button"
+            className={styles.loadOrderButton}
+            onClick={() => navigate(`/admin/counters/${order.counter.uuid}/register?order=${order.uuid}`)}
+          >
+            Load order
+          </button>
+        )}
       </div>
       <div className={styles.metaRow}>
         <span>placed {formatTime(order.createdAt)}</span>
@@ -137,17 +156,54 @@ export default function OrderDetailScreen() {
           </div>
         </div>
 
-        <div className={styles.panel}>
-          <div className={styles.panelLabel}>lifecycle</div>
-          <div className={styles.lifecycleStub}>
-            <span className={styles.notWiredBadge}>
-              <span className={styles.statusDot} />
-              not wired yet
-            </span>
-            <p className={styles.lifecycleReason}>
-              No audit-log API exists yet to source order status history from.
-            </p>
-            <p className={styles.docsHint}>docs/api-reference.md#known-gaps--drift-from-the-prd</p>
+        <div className={styles.sidePanels}>
+          <div className={styles.panel}>
+            <div className={styles.panelLabel}>customer</div>
+            <div className={styles.customerPanel}>
+              <span className={styles.walkInBadge}>Walk-in customer</span>
+              <p className={styles.lifecycleReason}>
+                No customer accounts exist yet — every order is treated as a walk-in sale.
+              </p>
+            </div>
+          </div>
+
+          {order.status === 'completed' && (
+            <div className={styles.panel}>
+              <div className={styles.panelLabel}>payment</div>
+              <div className={styles.paymentPanel}>
+                <span className={styles.notWiredBadge}>
+                  <span className={styles.statusDot} />
+                  static placeholder — not wired yet
+                </span>
+                <div className={styles.paymentRow}>
+                  <span>Method</span>
+                  <span>{STATIC_PAYMENT.method}</span>
+                </div>
+                <div className={styles.paymentRow}>
+                  <span>Amount tendered</span>
+                  <span>{money(STATIC_PAYMENT.amountTendered)}</span>
+                </div>
+                <div className={styles.paymentRow}>
+                  <span>Change</span>
+                  <span>{money(STATIC_PAYMENT.change)}</span>
+                </div>
+                <p className={styles.docsHint}>docs/backend-verification-todo.md (2026-09-23) — no GET endpoint for payment data yet</p>
+              </div>
+            </div>
+          )}
+
+          <div className={styles.panel}>
+            <div className={styles.panelLabel}>lifecycle</div>
+            <div className={styles.lifecycleStub}>
+              <span className={styles.notWiredBadge}>
+                <span className={styles.statusDot} />
+                not wired yet
+              </span>
+              <p className={styles.lifecycleReason}>
+                No audit-log API exists yet to source order status history from.
+              </p>
+              <p className={styles.docsHint}>docs/api-reference.md#known-gaps--drift-from-the-prd</p>
+            </div>
           </div>
         </div>
       </div>
