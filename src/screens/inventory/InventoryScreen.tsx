@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import styles from './InventoryScreen.module.css'
 import { ApiClientError } from '../../api/client'
 import { listProducts, type Product } from '../../api/products'
@@ -79,20 +80,38 @@ export default function InventoryScreen() {
   const [productsLoading, setProductsLoading] = useState(true)
   const [productsError, setProductsError] = useState<string | null>(null)
 
-  const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const [selectedUuid, setSelectedUuid] = useState<string | null>(null)
+  const search = searchParams.get('search') ?? ''
+  const selectedUuid = searchParams.get('selected')
+
+  const [searchInput, setSearchInput] = useState(search)
 
   const [movements, setMovements] = useState<InventoryMovement[]>([])
   const [movementsLoading, setMovementsLoading] = useState(false)
   const [movementsError, setMovementsError] = useState<string | null>(null)
 
-  // debounce the search box before it triggers a refetch
+  const updateParams = useCallback(
+    (patch: Record<string, string | undefined>) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        for (const [key, value] of Object.entries(patch)) {
+          if (value) next.set(key, value)
+          else next.delete(key)
+        }
+        return next
+      })
+    },
+    [setSearchParams],
+  )
+
+  // debounce the search box before it becomes a URL param / triggers a refetch
   useEffect(() => {
-    const handle = setTimeout(() => setSearch(searchInput), 300)
+    const handle = setTimeout(() => {
+      if (searchInput !== search) updateParams({ search: searchInput || undefined })
+    }, 300)
     return () => clearTimeout(handle)
-  }, [searchInput])
+  }, [searchInput, search, updateParams])
 
   const fetchProducts = useCallback(async () => {
     setProductsLoading(true)
@@ -100,14 +119,17 @@ export default function InventoryScreen() {
     try {
       const result = await listProducts({ search: search || undefined, page: 1, limit: PRODUCTS_LIMIT })
       setProducts(result.items)
-      // default state on load: first product in the list, unless one's already selected
-      setSelectedUuid((prev) => prev ?? result.items[0]?.uuid ?? null)
+      // default state on load: keep the URL's selection if still valid, else fall back to the first product
+      if (!selectedUuid || !result.items.some((item) => item.uuid === selectedUuid)) {
+        const fallback = result.items[0]?.uuid
+        if (fallback) updateParams({ selected: fallback })
+      }
     } catch (err) {
       setProductsError(err instanceof ApiClientError ? err.message : 'Could not load products.')
     } finally {
       setProductsLoading(false)
     }
-  }, [search])
+  }, [search, selectedUuid, updateParams])
 
   useEffect(() => {
     // Deferred a microtask so the call isn't a synchronous setState within the effect body
@@ -191,7 +213,7 @@ export default function InventoryScreen() {
               <div
                 key={item.uuid}
                 className={`${styles.row} ${item.uuid === selectedUuid ? styles.rowSelected : ''}`}
-                onClick={() => setSelectedUuid(item.uuid)}
+                onClick={() => updateParams({ selected: item.uuid })}
               >
                 <div className={styles.productCell}>
                   <div className={styles.productName}>{item.name}</div>
