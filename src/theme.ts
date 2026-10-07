@@ -1,6 +1,34 @@
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 
 export type Theme = 'light' | 'dark'
+
+const THEME_KEY = 'tender.theme'
+
+function readStoredTheme(): Theme {
+  try {
+    const stored = localStorage.getItem(THEME_KEY)
+    return stored === 'light' || stored === 'dark' ? stored : 'light'
+  } catch {
+    return 'light'
+  }
+}
+
+// Persisted in localStorage (unlike the session token) — a display preference should survive
+// tab close/reopen and refresh, not disappear with the session.
+export function useTheme(): [Theme, (theme: Theme) => void] {
+  const [theme, setThemeState] = useState<Theme>(readStoredTheme)
+
+  const setTheme = (next: Theme) => {
+    setThemeState(next)
+    try {
+      localStorage.setItem(THEME_KEY, next)
+    } catch {
+      // localStorage unavailable (e.g. private mode) — theme just won't survive a refresh.
+    }
+  }
+
+  return [theme, setTheme]
+}
 
 export const THEMES: Record<Theme, CSSProperties> = {
   light: {
