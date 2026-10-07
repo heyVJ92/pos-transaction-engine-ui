@@ -1,7 +1,18 @@
+import { getToken } from '../auth/token'
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 if (!BASE_URL) {
   throw new Error('VITE_API_BASE_URL is not set — copy .env.example to .env.local and set it.')
+}
+
+// Set by AuthContext on mount. Called on a 401 from any authenticated call so the app can clear
+// the stale token and redirect to login. Not called for /auth/login itself — a 401 there means
+// bad credentials (a form error), not an expired session.
+let onUnauthorized: (() => void) | null = null
+
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  onUnauthorized = handler
 }
 
 export interface ApiMeta {
@@ -45,12 +56,15 @@ export class ApiClientError extends Error {
 // stockapi's response envelope: {success:true,data,meta?} | {success:false,error:{code,message,details?}}
 // see docs/api-reference.md — every resource follows this shape.
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<ApiSuccess<T>> {
+  const token = getToken()
+
   let res: Response
   try {
     res = await fetch(`${BASE_URL}${path}`, {
       ...init,
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...init?.headers,
       },
     })
@@ -67,6 +81,9 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<A
   }
 
   if (!body.success) {
+    if (res.status === 401 && path !== '/auth/login') {
+      onUnauthorized?.()
+    }
     throw new ApiClientError(body.error.code, body.error.message, body.error.details, res.status)
   }
 
