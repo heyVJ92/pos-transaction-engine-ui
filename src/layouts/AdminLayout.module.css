@@ -15,35 +15,55 @@
   display: flex;
   flex-direction: column;
   background: var(--bg);
+  transition: width 0.15s ease;
+}
+
+.sidebar.collapsed {
+  width: 72px;
+}
+
+.topBar {
+  padding: 16px 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar.collapsed .topBar {
+  justify-content: center;
+  padding: 16px 0 14px;
+}
+
+.menuButton {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.menuButton:hover {
+  background: var(--hover);
+  color: var(--text);
 }
 
 .brand {
-  padding: 18px 16px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
+  min-width: 0;
 }
 
-.mark {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--surface);
-  border: 0.5px solid var(--border-strong);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
+.sidebar.collapsed .brandText {
+  display: none;
 }
-
-.markBarAccent, .markBar, .markBarSmall {
-  height: 2.5px;
-  border-radius: 2px;
-}
-.markBarAccent { width: 13px; background: var(--accent); }
-.markBar { width: 13px; background: var(--text-3); }
-.markBarSmall { width: 9px; background: var(--text-3); }
 
 .brandText {
   line-height: 1.1;
@@ -82,8 +102,14 @@
   padding-top: 16px;
 }
 
+.sidebar.collapsed .navGroupLabel {
+  display: none;
+}
+
 .navItem {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   text-align: left;
   text-decoration: none;
@@ -110,92 +136,88 @@
   background: var(--accent-bg);
 }
 
-.footer {
-  padding: 10px;
-  border-top: 0.5px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.sidebar.collapsed .navItemLabel {
+  display: none;
 }
-
-.roleRow {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 4px 6px;
-}
-
-.roleAvatar {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: var(--accent-bg);
-  color: var(--accent);
-  display: flex;
-  align-items: center;
+.sidebar.collapsed .navItem {
   justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  flex-shrink: 0;
+  padding: 9px;
 }
 
-.roleText {
-  line-height: 1.15;
-  flex: 1;
-  min-width: 0;
-}
-
-.roleName {
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.roleScope {
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  font-size: 10px;
-  color: var(--text-3);
-}
-
-.exitLink {
-  font-size: 11px;
-  color: var(--text-3);
-  text-decoration: none;
-}
-.exitLink:hover {
-  color: var(--text-2);
-}
-
-.themeToggle {
-  display: flex;
-  padding: 2px;
-  border-radius: 8px;
-  background: var(--track);
-  border: 0.5px solid var(--border);
-}
-
-.themeTab {
-  flex: 1;
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  color: var(--text-3);
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  font-size: 10.5px;
-  padding: 5px;
-  border-radius: 6px;
-  transition: all 0.15s;
-}
-
-.themeTabActive {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 1px 2px var(--mark-shadow);
+.sidebarFooter {
+  padding: 8px;
+  border-top: 0.5px solid var(--border);
 }
 
 .main {
   flex: 1;
   min-width: 0;
-  overflow-y: auto;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topHeader {
+  flex-shrink: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 24px;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--bg);
+}
+
+.iconButton {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 0.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.iconButton:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.searchWrap {
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  width: 0;
+  opacity: 0;
+  padding: 0;
+  margin-left: 0;
+  border: 0.5px solid transparent;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  transition: width 0.2s ease, opacity 0.15s ease, padding 0.2s ease, margin-left 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.searchWrapOpen .searchInput {
+  width: 220px;
+  opacity: 1;
+  padding: 8px 14px;
+  margin-left: 8px;
+  border-color: var(--border);
+}
+
+.mainContent {
+  flex: 1;
+  overflow-y: auto;
 }

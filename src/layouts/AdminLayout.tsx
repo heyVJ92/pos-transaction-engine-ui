@@ -1,36 +1,62 @@
-import { useState } from 'react'
-import { NavLink, Outlet, Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { NavLink, Outlet } from 'react-router-dom'
 import styles from './AdminLayout.module.css'
-import { THEMES, type Theme } from '../theme'
+import { THEMES, useTheme } from '../theme'
+import NavIcon, { type NavIconName } from '../components/NavIcon'
+import ProfileMenu from '../components/ProfileMenu'
 
-const NAV_MAIN = [
-  { to: '/admin/overview', label: 'Overview' },
-  { to: '/admin/products', label: 'Products' },
-  { to: '/admin/inventory', label: 'Inventory' },
-  { to: '/admin/counters', label: 'Counters' },
-  { to: '/admin/orders', label: 'Orders' },
+interface NavItem {
+  to: string
+  label: string
+  icon: NavIconName
+}
+
+const NAV_MAIN: NavItem[] = [
+  { to: '/admin/overview', label: 'Overview', icon: 'overview' },
+  { to: '/admin/products', label: 'Products', icon: 'products' },
+  { to: '/admin/inventory', label: 'Inventory', icon: 'inventory' },
+  { to: '/admin/counters', label: 'Counters', icon: 'counters' },
+  { to: '/admin/orders', label: 'Orders', icon: 'orders' },
 ]
 
-const NAV_SYSTEM = [
-  { to: '/admin/audit', label: 'Audit log' },
-  { to: '/admin/demo', label: 'Concurrency demo' },
+const NAV_SYSTEM: NavItem[] = [
+  { to: '/admin/audit', label: 'Audit log', icon: 'audit' },
+  { to: '/admin/demo', label: 'Concurrency demo', icon: 'demo' },
 ]
 
 export default function AdminLayout() {
-  const [theme, setTheme] = useState<Theme>('light')
+  const [theme, setTheme] = useTheme()
+  // Collapse state is deliberately local/session-only, not persisted — a display density toggle,
+  // not a preference like theme that should survive a refresh. Revisit if that turns out wrong.
+  const [collapsed, setCollapsed] = useState(false)
+
+  // Decorative only — no search is actually wired up. Opens on click, closes on blur/Escape.
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus()
+  }, [searchOpen])
 
   return (
     <div className={styles.root} style={THEMES[theme]} data-screen-label="App">
-      <aside className={styles.sidebar}>
-        <div className={styles.brand}>
-          <div className={styles.mark}>
-            <div className={styles.markBarAccent} />
-            <div className={styles.markBar} />
-            <div className={styles.markBarSmall} />
-          </div>
-          <div className={styles.brandText}>
-            <div className={styles.wordmark}>Tender</div>
-            <div className={styles.storeLabel}>store 04</div>
+      <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
+        <div className={styles.topBar}>
+          <button
+            type="button"
+            className={styles.menuButton}
+            onClick={() => setCollapsed((c) => !c)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <NavIcon name="menu" />
+          </button>
+
+          <div className={styles.brand}>
+            <div className={styles.brandText}>
+              <div className={styles.wordmark}>Tender</div>
+              <div className={styles.storeLabel}>store 04</div>
+            </div>
           </div>
         </div>
 
@@ -40,9 +66,11 @@ export default function AdminLayout() {
             <NavLink
               key={item.to}
               to={item.to}
+              title={item.label}
               className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
             >
-              {item.label}
+              <NavIcon name={item.icon} />
+              <span className={styles.navItemLabel}>{item.label}</span>
             </NavLink>
           ))}
           <div className={styles.navGroupLabel}>system</div>
@@ -50,43 +78,56 @@ export default function AdminLayout() {
             <NavLink
               key={item.to}
               to={item.to}
+              title={item.label}
               className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
             >
-              {item.label}
+              <NavIcon name={item.icon} />
+              <span className={styles.navItemLabel}>{item.label}</span>
             </NavLink>
           ))}
         </nav>
 
-        <div className={styles.footer}>
-          <div className={styles.roleRow}>
-            <div className={styles.roleAvatar}>A</div>
-            <div className={styles.roleText}>
-              <div className={styles.roleName}>Admin</div>
-              <div className={styles.roleScope}>full access</div>
-            </div>
-            <Link to="/" className={styles.exitLink}>exit</Link>
-          </div>
-          <div className={styles.themeToggle}>
-            <button
-              type="button"
-              onClick={() => setTheme('light')}
-              className={`${styles.themeTab} ${theme === 'light' ? styles.themeTabActive : ''}`}
-            >
-              light
-            </button>
-            <button
-              type="button"
-              onClick={() => setTheme('dark')}
-              className={`${styles.themeTab} ${theme === 'dark' ? styles.themeTabActive : ''}`}
-            >
-              dark
-            </button>
-          </div>
+        <div className={styles.sidebarFooter}>
+          <ProfileMenu theme={theme} onThemeChange={setTheme} placement="sidebar-footer" collapsed={collapsed} />
         </div>
       </aside>
 
       <main className={styles.main}>
-        <Outlet />
+        <div className={styles.topHeader}>
+          <div className={`${styles.searchWrap} ${searchOpen ? styles.searchWrapOpen : ''}`}>
+            <button
+              type="button"
+              className={styles.iconButton}
+              aria-label="Search"
+              title="Search — not wired yet"
+              onClick={() => setSearchOpen(true)}
+            >
+              <NavIcon name="search" />
+            </button>
+            <input
+              ref={searchInputRef}
+              type="text"
+              className={styles.searchInput}
+              placeholder="Search — not wired yet"
+              onBlur={() => setSearchOpen(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') e.currentTarget.blur()
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            className={styles.iconButton}
+            aria-label="Notifications"
+            title="Notifications — not wired yet"
+          >
+            <NavIcon name="bell" />
+          </button>
+        </div>
+
+        <div className={styles.mainContent}>
+          <Outlet />
+        </div>
       </main>
     </div>
   )
